@@ -480,14 +480,6 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
                 if (identityProviderConfig.isStoreToken()) {
                     FederatedIdentityModel identity = this.session.users().getFederatedIdentity(this.realmModel, authResult.getUser(), providerId);
-                    if (request.getHttpHeaders().getRequestHeader("refresh") != null ){
-                        System.out.println(" Line 477 Identity Broker Service ");
-                        AccessTokenResponse response = JsonSerialization.readValue(identity.getToken(), AccessTokenResponse.class);
-                        SimpleHttp exchangeReq = SimpleHttp.doPost(identityProviderConfig.getConfig().get("tokenUrl"), session).param(OAuth2Constants.REFRESH_TOKEN, response.getRefreshToken()).param(OAuth2Constants.GRANT_TYPE, OAuth2Constants.REFRESH_TOKEN).param(OAuth2Constants.CLIENT_ID, identityProviderConfig.getConfig().get("clientId"))
-                                .param(OAuth2Constants.CLIENT_SECRET, identityProviderConfig.getConfig().get("clientSecret"));
-                        identity.setToken(exchangeReq.asString());
-                    }
-
 
                     if (identity == null) {
                         return corsResponse(badRequest("User [" + authResult.getUser().getId() + "] is not associated with identity provider [" + providerId + "]."), clientModel);
@@ -543,13 +535,13 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
                 if (identityProviderConfig.isStoreToken()) {
                     FederatedIdentityModel identity = this.session.users().getFederatedIdentity(this.realmModel, authResult.getUser(), providerId);
+                    AccessTokenResponse response = JsonSerialization.readValue(identity.getToken(), AccessTokenResponse.class);
                     SimpleHttp exchangeReq = SimpleHttp.doPost(identityProviderConfig.getConfig().get("tokenUrl"), session).param(OAuth2Constants.REFRESH_TOKEN, response.getRefreshToken()).param(OAuth2Constants.GRANT_TYPE, OAuth2Constants.REFRESH_TOKEN).param(OAuth2Constants.CLIENT_ID, identityProviderConfig.getConfig().get("clientId"))
                             .param(OAuth2Constants.CLIENT_SECRET, identityProviderConfig.getConfig().get("clientSecret"));
                     String exchangeTokenResponse = exchangeReq.asString();
                     if (exchangeReq.asString().contains("error") || exchangeReq.asString().contains("invalid") || exchangeReq.asString().contains("expired") ) {
                         return corsResponse(badRequest("Failed to called token refresh as token is expired"), clientModel);
                     }
-                    AccessTokenResponse response = JsonSerialization.readValue(identity.getToken(), AccessTokenResponse.class);
                     AccessTokenResponse accessTokenResponse = JsonSerialization.readValue(exchangeReq.asString(), AccessTokenResponse.class);
                     response.setToken(accessTokenResponse.getToken());
                     identity.setToken(JsonSerialization.writeValueAsString(response));
