@@ -18,6 +18,8 @@ package org.keycloak.services.resources;
 
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
+import org.keycloak.OAuth2Constants;
+import org.keycloak.broker.provider.util.SimpleHttp;
 import org.keycloak.http.HttpRequest;
 import org.keycloak.OAuthErrorException;
 import org.keycloak.authentication.AuthenticationProcessor;
@@ -70,6 +72,7 @@ import org.keycloak.protocol.oidc.utils.RedirectUtils;
 import org.keycloak.protocol.saml.SamlSessionUtils;
 import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
 import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.ErrorPageException;
 import org.keycloak.services.ErrorResponse;
@@ -433,6 +436,13 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
         return getToken(providerId, false);
     }
 
+    @GET
+    @NoCache
+    @Path("{provider_id}/refreshToken")
+    public Response getRefreshToken(@PathParam("provider_id") String providerId) {
+        return refreshToken(providerId, false);
+    }
+
     private boolean canReadBrokerToken(AccessToken token) {
         Map<String, AccessToken.Access> resourceAccess = token.getResourceAccess();
         AccessToken.Access brokerRoles = resourceAccess == null ? null : resourceAccess.get(Constants.BROKER_SERVICE_CLIENT_ID);
@@ -441,7 +451,7 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
     private Response getToken(String providerId, boolean forceRetrieval) {
         this.event.event(EventType.IDENTITY_PROVIDER_RETRIEVE_TOKEN);
-
+        System.out.println(" Line 447 Identity Broker Service ");
         try {
             AuthenticationManager.AuthResult authResult = new AppAuthManager.BearerTokenAuthenticator(session)
                     .setRealm(realmModel)
@@ -470,7 +480,80 @@ public class IdentityBrokerService implements IdentityProvider.AuthenticationCal
 
                 if (identityProviderConfig.isStoreToken()) {
                     FederatedIdentityModel identity = this.session.users().getFederatedIdentity(this.realmModel, authResult.getUser(), providerId);
+                    if (request.getHttpHeaders().getRequestHeader("refresh") != null ){
+                        System.out.println(" Line 477 Identity Broker Service ");
+                        AccessTokenResponse response = JsonSerialization.readValue(identity.getToken(), AccessTokenResponse.class);
+                        SimpleHttp exchangeReq = SimpleHttp.doPost(identityProviderConfig.getConfig().get("tokenUrl"), session).param(OAuth2Constants.REFRESH_TOKEN, response.getRefreshToken()).param(OAuth2Constants.GRANT_TYPE, OAuth2Constants.REFRESH_TOKEN).param(OAuth2Constants.CLIENT_ID, identityProviderConfig.getConfig().get("clientId"))
+                                .param(OAuth2Constants.CLIENT_SECRET, identityProviderConfig.getConfig().get("clientSecret"));
+                        identity.setToken(exchangeReq.asString());
+                    }
 
+
+                    if (identity == null) {
+                        return corsResponse(badRequest("User [" + authResult.getUser().getId() + "] is not associated with identity provider [" + providerId + "]."), clientModel);
+                    }
+
+                    if (identity.getToken() == null) {
+                        return corsResponse(notFound("No token stored for user [" + authResult.getUser().getId() + "] with associated identity provider [" + providerId + "]."), clientModel);
+                    }
+
+                    this.event.success();
+
+                    return corsResponse(identityProvider.retrieveToken(session, identity), clientModel);
+                }
+
+                return corsResponse(badRequest("Identity Provider [" + providerId + "] does not support this operation."), clientModel);
+            }
+
+            return badRequest("Invalid token.");
+        } catch (IdentityBrokerException e) {
+            return redirectToErrorPage(Response.Status.BAD_GATEWAY, Messages.COULD_NOT_OBTAIN_TOKEN, e, providerId);
+        }  catch (Exception e) {
+            return redirectToErrorPage(Response.Status.BAD_GATEWAY, Messages.UNEXPECTED_ERROR_RETRIEVING_TOKEN, e, providerId);
+        }
+    }
+
+    private Response refreshToken(String providerId, boolean forceRetrieval) {
+        this.event.event(EventType.IDENTITY_PROVIDER_RETRIEVE_TOKEN);
+        try {
+            AuthenticationManager.AuthResult authResult = new AppAuthManager.BearerTokenAuthenticator(session)
+                    .setRealm(realmModel)
+                    .setConnection(clientConnection)
+                    .setHeaders(request.getHttpHeaders())
+                    .authenticate();
+
+            if (authResult != null) {
+                AccessToken token = authResult.getToken();
+                ClientModel clientModel = authResult.getClient();
+
+                session.getContext().setClient(clientModel);
+
+                ClientModel brokerClient = realmModel.getClientByClientId(Constants.BROKER_SERVICE_CLIENT_ID);
+                if (brokerClient == null) {
+                    return corsResponse(forbidden("Realm has not migrated to support the broker token exchange service"), clientModel);
+
+                }
+                if (!canReadBrokerToken(token)) {
+                    return corsResponse(forbidden("Client [" + clientModel.getClientId() + "] not authorized to retrieve tokens from identity provider [" + providerId + "]."), clientModel);
+
+                }
+
+                IdentityProvider identityProvider = getIdentityProvider(session, realmModel, providerId);
+                IdentityProviderModel identityProviderConfig = getIdentityProviderConfig(providerId);
+
+                if (identityProviderConfig.isStoreToken()) {
+                    FederatedIdentityModel identity = this.session.users().getFederatedIdentity(this.realmModel, authResult.getUser(), providerId);
+                    SimpleHttp exchangeReq = SimpleHttp.doPost(identityProviderConfig.getConfig().get("tokenUrl"), session).param(OAuth2Constants.REFRESH_TOKEN, response.getRefreshToken()).param(OAuth2Constants.GRANT_TYPE, OAuth2Constants.REFRESH_TOKEN).param(OAuth2Constants.CLIENT_ID, identityProviderConfig.getConfig().get("clientId"))
+                            .param(OAuth2Constants.CLIENT_SECRET, identityProviderConfig.getConfig().get("clientSecret"));
+                    String exchangeTokenResponse = exchangeReq.asString();
+                    if (exchangeReq.asString().contains("error") || exchangeReq.asString().contains("invalid") || exchangeReq.asString().contains("expired") ) {
+                        return corsResponse(badRequest("Failed to called token refresh as token is expired"), clientModel);
+                    }
+                    AccessTokenResponse response = JsonSerialization.readValue(identity.getToken(), AccessTokenResponse.class);
+                    AccessTokenResponse accessTokenResponse = JsonSerialization.readValue(exchangeReq.asString(), AccessTokenResponse.class);
+                    response.setToken(accessTokenResponse.getToken());
+                    identity.setToken(JsonSerialization.writeValueAsString(response));
+                    this.session.users().updateFederatedIdentity(this.realmModel, authResult.getUser(), identity);
                     if (identity == null) {
                         return corsResponse(badRequest("User [" + authResult.getUser().getId() + "] is not associated with identity provider [" + providerId + "]."), clientModel);
                     }
