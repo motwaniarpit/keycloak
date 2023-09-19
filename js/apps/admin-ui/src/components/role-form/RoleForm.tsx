@@ -9,7 +9,7 @@ import { SubmitHandler, UseFormReturn, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link, To } from "react-router-dom";
 
-import { FormAccess } from "../form-access/FormAccess";
+import { FormAccess } from "../form/FormAccess";
 import { AttributeForm } from "../key-value-form/AttributeForm";
 import { KeycloakTextArea } from "../keycloak-text-area/KeycloakTextArea";
 import { KeycloakTextInput } from "../keycloak-text-input/KeycloakTextInput";
@@ -35,7 +35,7 @@ export const RoleForm = ({
   role,
   editMode,
 }: RoleFormProps) => {
-  const { t } = useTranslation("roles");
+  const { t } = useTranslation();
 
   const roleName = useWatch({
     control,
@@ -59,7 +59,7 @@ export const RoleForm = ({
             validated={
               errors.name ? ValidatedOptions.error : ValidatedOptions.default
             }
-            helperTextInvalid={t("common:required")}
+            helperTextInvalid={t("required")}
             isRequired={!editMode}
           >
             <KeycloakTextInput
@@ -69,14 +69,14 @@ export const RoleForm = ({
                 required: !editMode,
                 validate: (value) => {
                   if (!value?.trim()) {
-                    return t("common:required").toString();
+                    return t("required").toString();
                   }
                 },
               })}
             />
           </FormGroup>
           <FormGroup
-            label={t("common:description")}
+            label={t("description")}
             fieldId="kc-description"
             validated={
               errors.description
@@ -96,21 +96,21 @@ export const RoleForm = ({
               {...register("description", {
                 maxLength: {
                   value: 255,
-                  message: t("common:maxLength", { length: 255 }),
+                  message: t("maxLength", { length: 255 }),
                 },
               })}
             />
           </FormGroup>
           <ActionGroup>
             <Button data-testid="save" type="submit" variant="primary">
-              {t("common:save")}
+              {t("save")}
             </Button>
             <Button
               data-testid="cancel"
               variant="link"
               component={(props) => <Link {...props} to={cancelLink} />}
             >
-              {t("common:cancel")}
+              {t("cancel")}
             </Button>
           </ActionGroup>
         </FormAccess>

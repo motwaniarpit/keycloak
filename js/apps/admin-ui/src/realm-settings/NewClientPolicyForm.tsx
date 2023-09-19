@@ -30,7 +30,7 @@ import { HelpItem } from "ui-shared";
 import { adminClient } from "../admin-client";
 import { useAlerts } from "../components/alert/Alerts";
 import { useConfirmDialog } from "../components/confirm-dialog/ConfirmDialog";
-import { FormAccess } from "../components/form-access/FormAccess";
+import { FormAccess } from "../components/form/FormAccess";
 import { KeycloakSpinner } from "../components/keycloak-spinner/KeycloakSpinner";
 import { KeycloakTextArea } from "../components/keycloak-text-area/KeycloakTextArea";
 import { KeycloakTextInput } from "../components/keycloak-text-input/KeycloakTextInput";
@@ -67,7 +67,7 @@ type PolicyDetailAttributes = {
 };
 
 export default function NewClientPolicyForm() {
-  const { t } = useTranslation("realm-settings");
+  const { t } = useTranslation();
   const { realm } = useRealm();
   const { addAlert, addError } = useAlerts();
   const [policies, setPolicies] = useState<ClientPolicyRepresentation[]>();
@@ -113,12 +113,12 @@ export default function NewClientPolicyForm() {
     onChange,
     value,
   }: ClientPoliciesHeaderProps) => {
-    const { t } = useTranslation("realm-settings");
+    const { t } = useTranslation();
 
     const [toggleDisableDialog, DisableConfirm] = useConfirmDialog({
       titleKey: "realm-settings:disablePolicyConfirmTitle",
       messageKey: "realm-settings:disablePolicyConfirm",
-      continueButtonLabel: "common:disable",
+      continueButtonLabel: "disable",
       onConfirm: () => {
         onChange(!value);
         save();
@@ -183,7 +183,7 @@ export default function NewClientPolicyForm() {
     },
     ({ policies, profiles }) => {
       const currentPolicy = policies.policies?.find(
-        (item) => item.name === policyName
+        (item) => item.name === policyName,
       );
 
       const allClientProfiles = [
@@ -199,7 +199,7 @@ export default function NewClientPolicyForm() {
         setShowAddConditionsAndProfilesForm(true);
       }
     },
-    []
+    [],
   );
 
   const setupForm = (policy: ClientPolicyRepresentation) => {
@@ -207,7 +207,7 @@ export default function NewClientPolicyForm() {
   };
 
   const policy = (policies || []).filter(
-    (policy) => policy.name === policyName
+    (policy) => policy.name === policyName,
   );
   const policyConditions = policy[0]?.conditions || [];
   const policyProfiles = policy[0]?.profiles || [];
@@ -229,12 +229,12 @@ export default function NewClientPolicyForm() {
 
     const getAllPolicies = () => {
       const policyNameExists = policies?.some(
-        (policy) => policy.name === createdPolicy.name
+        (policy) => policy.name === createdPolicy.name,
       );
 
       if (policyNameExists) {
         return policies?.map((policy) =>
-          policy.name === createdPolicy.name ? createdPolicy : policy
+          policy.name === createdPolicy.name ? createdPolicy : policy,
         );
       } else if (createdForm.name !== policyName) {
         return policies
@@ -252,7 +252,7 @@ export default function NewClientPolicyForm() {
         policyName
           ? t("realm-settings:updateClientPolicySuccess")
           : t("realm-settings:createClientPolicySuccess"),
-        AlertVariant.success
+        AlertVariant.success,
       );
       navigate(toEditClientPolicy({ realm, policyName: createdForm.name! }));
       setShowAddConditionsAndProfilesForm(true);
@@ -270,7 +270,7 @@ export default function NewClientPolicyForm() {
     continueButtonVariant: ButtonVariant.danger,
     onConfirm: async () => {
       const updatedPolicies = policies?.filter(
-        (policy) => policy.name !== policyName
+        (policy) => policy.name !== policyName,
       );
 
       try {
@@ -282,7 +282,7 @@ export default function NewClientPolicyForm() {
           toClientPolicies({
             realm,
             tab: "policies",
-          })
+          }),
         );
       } catch (error) {
         addError(t("deleteClientPolicyError"), error);
@@ -307,14 +307,14 @@ export default function NewClientPolicyForm() {
             });
             addAlert(t("deleteConditionSuccess"), AlertVariant.success);
             navigate(
-              toEditClientPolicy({ realm, policyName: formValues.name! })
+              toEditClientPolicy({ realm, policyName: formValues.name! }),
             );
           } catch (error) {
             addError(t("deleteConditionError"), error);
           }
         } else {
           const updatedPolicies = policies?.filter(
-            (policy) => policy.name !== policyName
+            (policy) => policy.name !== policyName,
           );
 
           try {
@@ -326,7 +326,7 @@ export default function NewClientPolicyForm() {
               toClientPolicies({
                 realm,
                 tab: "policies",
-              })
+              }),
             );
           } catch (error) {
             addError(t("deleteClientError"), error);
@@ -357,7 +357,7 @@ export default function NewClientPolicyForm() {
         }
       } else {
         const updatedPolicies = policies?.filter(
-          (policy) => policy.name !== policyName
+          (policy) => policy.name !== policyName,
         );
 
         try {
@@ -369,7 +369,7 @@ export default function NewClientPolicyForm() {
             toClientPolicies({
               realm,
               tab: "policies",
-            })
+            }),
           );
         } catch (error) {
           addError(t("deleteClientError"), error);
@@ -400,7 +400,7 @@ export default function NewClientPolicyForm() {
     };
 
     const index = policies?.findIndex(
-      (policy) => createdPolicy.name === policy.name
+      (policy) => createdPolicy.name === policy.name,
     );
 
     if (index === undefined || index === -1) {
@@ -421,7 +421,7 @@ export default function NewClientPolicyForm() {
       navigate(toEditClientPolicy({ realm, policyName: formValues.name! }));
       addAlert(
         t("realm-settings:addClientProfileSuccess"),
-        AlertVariant.success
+        AlertVariant.success,
       );
     } catch (error) {
       addError("realm-settings:addClientProfileError", error);
@@ -461,7 +461,7 @@ export default function NewClientPolicyForm() {
           className="pf-u-mt-lg"
         >
           <FormGroup
-            label={t("common:name")}
+            label={t("name")}
             fieldId="kc-client-profile-name"
             isRequired
             helperTextInvalid={form.formState.errors.name?.message}
@@ -480,7 +480,7 @@ export default function NewClientPolicyForm() {
                   : ValidatedOptions.default
               }
               {...form.register("name", {
-                required: { value: true, message: t("common:required") },
+                required: { value: true, message: t("required") },
                 validate: (value) =>
                   policies?.some((policy) => policy.name === value)
                     ? t("createClientProfileNameHelperText").toString()
@@ -488,7 +488,7 @@ export default function NewClientPolicyForm() {
               })}
             />
           </FormGroup>
-          <FormGroup label={t("common:description")} fieldId="kc-description">
+          <FormGroup label={t("description")} fieldId="kc-description">
             <KeycloakTextArea
               aria-label={t("description")}
               id="kc-client-policy-description"
@@ -503,7 +503,7 @@ export default function NewClientPolicyForm() {
               data-testid="saveCreatePolicy"
               isDisabled={!form.formState.isValid}
             >
-              {t("common:save")}
+              {t("save")}
             </Button>
             <Button
               id="cancelCreatePolicy"
@@ -515,14 +515,12 @@ export default function NewClientPolicyForm() {
                       toClientPolicies({
                         realm,
                         tab: "policies",
-                      })
+                      }),
                     )
               }
               data-testid="cancelCreatePolicy"
             >
-              {showAddConditionsAndProfilesForm
-                ? t("common:reload")
-                : t("common:cancel")}
+              {showAddConditionsAndProfilesForm ? t("reload") : t("cancel")}
             </Button>
           </ActionGroup>
           {(showAddConditionsAndProfilesForm || form.formState.isSubmitted) && (
@@ -532,7 +530,7 @@ export default function NewClientPolicyForm() {
                   <Text className="kc-conditions" component={TextVariants.h1}>
                     {t("conditions")}
                     <HelpItem
-                      helpText={t("realm-settings-help:conditions")}
+                      helpText={t("conditionsHelp")}
                       fieldLabelId="realm-settings:conditions"
                     />
                   </Text>
@@ -601,6 +599,7 @@ export default function NewClientPolicyForm() {
                                       />
                                       <Button
                                         variant="link"
+                                        aria-label="remove-condition"
                                         isInline
                                         icon={
                                           <TrashIcon
@@ -617,7 +616,7 @@ export default function NewClientPolicyForm() {
                                         }
                                       ></Button>
                                     </>
-                                  )
+                                  ),
                               )}
                             </DataListCell>,
                           ]}
@@ -631,7 +630,7 @@ export default function NewClientPolicyForm() {
                   <Divider />
                   <Text
                     className="kc-emptyConditions"
-                    component={TextVariants.h6}
+                    component={TextVariants.h2}
                   >
                     {t("realm-settings:emptyConditions")}
                   </Text>
@@ -649,7 +648,7 @@ export default function NewClientPolicyForm() {
                   >
                     {t("clientProfiles")}
                     <HelpItem
-                      helpText={t("realm-settings-help:clientProfiles")}
+                      helpText={t("clientProfilesHelp")}
                       fieldLabelId="realm-settings:clientProfiles"
                     />
                   </Text>
@@ -700,13 +699,14 @@ export default function NewClientPolicyForm() {
                                     <HelpItem
                                       helpText={
                                         clientProfiles.find(
-                                          (profile) => type === profile.name
+                                          (profile) => type === profile.name,
                                         )?.description
                                       }
                                       fieldLabelId={profile}
                                     />
                                     <Button
                                       variant="link"
+                                      aria-label="remove-client-profile"
                                       isInline
                                       icon={
                                         <TrashIcon
@@ -736,7 +736,7 @@ export default function NewClientPolicyForm() {
                   <Divider />
                   <Text
                     className="kc-emptyClientProfiles"
-                    component={TextVariants.h6}
+                    component={TextVariants.h2}
                   >
                     {t("realm-settings:emptyProfiles")}
                   </Text>

@@ -1,10 +1,8 @@
-import { ActionGroup, Button, FormGroup } from "@patternfly/react-core";
-import { useFormContext } from "react-hook-form";
+import { ActionGroup, Button } from "@patternfly/react-core";
 import { useTranslation } from "react-i18next";
 
-import { FormAccess } from "../../components/form-access/FormAccess";
-import { HelpItem } from "ui-shared";
-import { KeycloakTextInput } from "../../components/keycloak-text-input/KeycloakTextInput";
+import { FormAccess } from "../../components/form/FormAccess";
+import { TextControl } from "ui-shared";
 import { ApplicationUrls } from "./ApplicationUrls";
 
 type FineGrainSamlEndpointConfigProps = {
@@ -16,148 +14,65 @@ export const FineGrainSamlEndpointConfig = ({
   save,
   reset,
 }: FineGrainSamlEndpointConfigProps) => {
-  const { t } = useTranslation("clients");
-  const { register } = useFormContext();
+  const { t } = useTranslation();
   return (
     <FormAccess role="manage-realm" isHorizontal>
       <ApplicationUrls />
-      <FormGroup
+      <TextControl
+        name="attributes.saml_assertion_consumer_url_post"
         label={t("assertionConsumerServicePostBindingURL")}
-        fieldId="assertionConsumerServicePostBindingURL"
-        labelIcon={
-          <HelpItem
-            helpText={t("clients-help:assertionConsumerServicePostBindingURL")}
-            fieldLabelId="clients:assertionConsumerServicePostBindingURL"
-          />
-        }
-      >
-        <KeycloakTextInput
-          id="assertionConsumerServicePostBindingURL"
-          type="url"
-          {...register("attributes.saml_assertion_consumer_url_post")}
-        />
-      </FormGroup>
-      <FormGroup
+        labelIcon={t("assertionConsumerServicePostBindingURLHelp")}
+        type="url"
+      />
+      <TextControl
+        name="attributes.saml_assertion_consumer_url_redirect"
         label={t("assertionConsumerServiceRedirectBindingURL")}
-        fieldId="assertionConsumerServiceRedirectBindingURL"
-        labelIcon={
-          <HelpItem
-            helpText={t(
-              "clients-help:assertionConsumerServiceRedirectBindingURL"
-            )}
-            fieldLabelId="clients:assertionConsumerServiceRedirectBindingURL"
-          />
-        }
-      >
-        <KeycloakTextInput
-          id="assertionConsumerServiceRedirectBindingURL"
-          type="url"
-          {...register("attributes.saml_assertion_consumer_url_redirect")}
-        />
-      </FormGroup>
-      <FormGroup
+        labelIcon={t("assertionConsumerServiceRedirectBindingURLHelp")}
+        type="url"
+      />
+      <TextControl
+        name="attributes.saml_single_logout_service_url_post"
         label={t("logoutServicePostBindingURL")}
-        fieldId="logoutServicePostBindingURL"
-        labelIcon={
-          <HelpItem
-            helpText={t("clients-help:logoutServicePostBindingURL")}
-            fieldLabelId="clients:logoutServicePostBindingURL"
-          />
-        }
-      >
-        <KeycloakTextInput
-          id="logoutServicePostBindingURL"
-          type="url"
-          {...register("attributes.saml_single_logout_service_url_post")}
-        />
-      </FormGroup>
-      <FormGroup
+        labelIcon={t("logoutServicePostBindingURLHelp")}
+        type="url"
+      />
+      <TextControl
+        name="attributes.saml_single_logout_service_url_redirect"
         label={t("logoutServiceRedirectBindingURL")}
-        fieldId="logoutServiceRedirectBindingURL"
-        labelIcon={
-          <HelpItem
-            helpText={t("clients-help:logoutServiceRedirectBindingURL")}
-            fieldLabelId="clients:logoutServiceRedirectBindingURL"
-          />
-        }
-      >
-        <KeycloakTextInput
-          id="logoutServiceRedirectBindingURL"
-          type="url"
-          {...register("attributes.saml_single_logout_service_url_redirect")}
-        />
-      </FormGroup>
-      <FormGroup
+        labelIcon={t("logoutServiceRedirectBindingURLHelp")}
+        type="url"
+      />
+      <TextControl
+        name="attributes.saml_single_logout_service_url_soap"
         label={t("logoutServiceSoapBindingUrl")}
-        fieldId="logoutServiceSoapBindingUrl"
-        labelIcon={
-          <HelpItem
-            helpText="clients-help:logoutServiceSoapBindingUrl"
-            fieldLabelId="clients:logoutServiceSoapBindingUrl"
-          />
-        }
-      >
-        <KeycloakTextInput
-          id="logoutServiceSoapBindingUrl"
-          type="url"
-          {...register("attributes.saml_single_logout_service_url_soap")}
-        />
-      </FormGroup>
-      <FormGroup
+        labelIcon={t("logoutServiceSoapBindingUrlHelp")}
+        type="url"
+      />
+      <TextControl
+        name="attributes.saml_single_logout_service_url_artifact"
         label={t("logoutServiceArtifactBindingUrl")}
-        fieldId="logoutServiceArtifactBindingUrl"
-        labelIcon={
-          <HelpItem
-            helpText={t("clients-help:logoutServiceArtifactBindingUrl")}
-            fieldLabelId="clients:logoutServiceArtifactBindingUrl"
-          />
-        }
-      >
-        <KeycloakTextInput
-          id="logoutServiceArtifactBindingUrl"
-          type="url"
-          {...register("attributes.saml_single_logout_service_url_artifact")}
-        />
-      </FormGroup>
-      <FormGroup
+        labelIcon={t("logoutServiceArtifactBindingUrlHelp")}
+        type="url"
+      />
+      <TextControl
+        name="attributes.saml_artifact_binding_url"
         label={t("artifactBindingUrl")}
-        fieldId="artifactBindingUrl"
-        labelIcon={
-          <HelpItem
-            helpText={t("clients-help:artifactBindingUrl")}
-            fieldLabelId="clients:artifactBindingUrl"
-          />
-        }
-      >
-        <KeycloakTextInput
-          id="artifactBindingUrl"
-          type="url"
-          {...register("attributes.saml_artifact_binding_url")}
-        />
-      </FormGroup>
-      <FormGroup
+        labelIcon={t("artifactBindingUrlHelp")}
+        type="url"
+      />
+      <TextControl
+        name="attributes.saml_artifact_resolution_service_url"
         label={t("artifactResolutionService")}
-        fieldId="artifactResolutionService"
-        labelIcon={
-          <HelpItem
-            helpText={t("clients-help:artifactResolutionService")}
-            fieldLabelId="clients:artifactResolutionService"
-          />
-        }
-      >
-        <KeycloakTextInput
-          id="artifactResolutionService"
-          type="url"
-          {...register("attributes.saml_artifact_resolution_service_url")}
-        />
-      </FormGroup>
+        labelIcon={t("artifactResolutionServiceHelp")}
+        type="url"
+      />
 
       <ActionGroup>
-        <Button variant="tertiary" onClick={save}>
-          {t("common:save")}
+        <Button variant="tertiary" onClick={save} data-testid="fineGrainSave">
+          {t("save")}
         </Button>
-        <Button variant="link" onClick={reset}>
-          {t("common:revert")}
+        <Button variant="link" onClick={reset} data-testid="fineGrainRevert">
+          {t("revert")}
         </Button>
       </ActionGroup>
     </FormAccess>

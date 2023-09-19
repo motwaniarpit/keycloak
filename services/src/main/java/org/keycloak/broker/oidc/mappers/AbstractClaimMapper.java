@@ -82,8 +82,8 @@ public abstract class AbstractClaimMapper extends AbstractIdentityProviderMapper
 
         }
         {  // search ID Token
-            Object rawIdToken = context.getContextData().get(KeycloakOIDCIdentityProvider.VALIDATED_ID_TOKEN);
-            JsonWebToken idToken;
+            Object rawIdToken = context.getContextData().get(OIDCIdentityProvider.VALIDATED_ID_TOKEN);
+            JsonWebToken idToken = null;
 
             if (rawIdToken instanceof String) {
                 try {
@@ -93,13 +93,13 @@ public abstract class AbstractClaimMapper extends AbstractIdentityProviderMapper
                 }
             } else if (rawIdToken instanceof JsonWebToken) {
                 idToken = (JsonWebToken) rawIdToken;
-            } else {
-                return null;
             }
 
-            Object value = getClaimValue(idToken, claim);
-            if (value != null)
-                return value;
+            if (idToken != null) {
+                Object value = getClaimValue(idToken, claim);
+                if (value != null)
+                    return value;
+            }
         }
         {
             // Search the OIDC UserInfo claim set (if any)

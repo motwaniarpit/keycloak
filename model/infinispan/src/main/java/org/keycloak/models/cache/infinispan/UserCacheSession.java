@@ -23,7 +23,6 @@ import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.CredentialValidationOutput;
 import org.keycloak.models.IdentityProviderModel;
-import org.keycloak.models.LegacySessionSupportProvider;
 import org.keycloak.models.cache.infinispan.events.InvalidationEvent;
 import org.keycloak.common.constants.ServiceAccountConstants;
 import org.keycloak.component.ComponentModel;
@@ -316,6 +315,9 @@ public class UserCacheSession implements UserCache, OnCreateComponent, OnUpdateC
 
         if (!storageId.isLocal()) {
             ComponentModel component = realm.getComponent(storageId.getProviderId());
+            if (component == null) {
+                return null;
+            }
             CacheableStorageProviderModel model = new CacheableStorageProviderModel(component);
 
             // although we do set a timeout, Infinispan has no guarantees when the user will be evicted
@@ -374,7 +376,6 @@ public class UserCacheSession implements UserCache, OnCreateComponent, OnUpdateC
 
     private void onCache(RealmModel realm, UserAdapter adapter, UserModel delegate) {
         ((OnUserCache)getDelegate()).onCache(realm, adapter, delegate);
-        ((OnUserCache) session.getProvider(LegacySessionSupportProvider.class).userCredentialManager()).onCache(realm, adapter, delegate);
     }
 
     @Override

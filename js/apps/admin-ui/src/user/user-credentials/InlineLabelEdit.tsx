@@ -25,7 +25,7 @@ export const InlineLabelEdit = ({
   isEditable,
   toggle,
 }: InlineLabelEditProps) => {
-  const { t } = useTranslation("users");
+  const { t } = useTranslation();
   const { register, handleSubmit } = useForm<UserLabelForm>();
 
   const { addAlert, addError } = useAlerts();
@@ -37,7 +37,7 @@ export const InlineLabelEdit = ({
           id: userId,
           credentialId: credential.id!,
         },
-        userLabel.userLabel || ""
+        userLabel.userLabel || "",
       );
       addAlert(t("updateCredentialUserLabelSuccess"), AlertVariant.success);
       toggle();

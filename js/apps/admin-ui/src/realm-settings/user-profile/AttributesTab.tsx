@@ -31,7 +31,7 @@ type movedAttributeType = UserProfileAttribute;
 export const AttributesTab = () => {
   const { config, save } = useUserProfile();
   const { realm: realmName } = useRealm();
-  const { t } = useTranslation("realm-settings");
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [filter, setFilter] = useState("allGroups");
   const [isFilterTypeDropdownOpen, toggleIsFilterTypeDropdownOpen] =
@@ -41,7 +41,7 @@ export const AttributesTab = () => {
 
   const executeMove = async (
     attribute: UserProfileAttribute,
-    newIndex: number
+    newIndex: number,
   ) => {
     const fromIndex = config?.attributes!.findIndex((attr) => {
       return attr.name === attribute.name;
@@ -57,12 +57,12 @@ export const AttributesTab = () => {
       {
         successMessageKey: "realm-settings:updatedUserProfileSuccess",
         errorMessageKey: "realm-settings:updatedUserProfileError",
-      }
+      },
     );
   };
 
   const updatedAttributes = config?.attributes!.filter(
-    (attribute) => attribute.name !== attributeToDelete
+    (attribute) => attribute.name !== attributeToDelete,
   );
 
   const [toggleDeleteDialog, DeleteConfirm] = useConfirmDialog({
@@ -70,7 +70,7 @@ export const AttributesTab = () => {
     messageKey: t("deleteAttributeConfirm", {
       attributeName: attributeToDelete,
     }),
-    continueButtonLabel: t("common:delete"),
+    continueButtonLabel: t("delete"),
     continueButtonVariant: ButtonVariant.danger,
     onConfirm: async () => {
       save(
@@ -78,7 +78,7 @@ export const AttributesTab = () => {
         {
           successMessageKey: "realm-settings:deleteAttributeSuccess",
           errorMessageKey: "realm-settings:deleteAttributeError",
-        }
+        },
       );
       setAttributeToDelete("");
     },
@@ -118,7 +118,9 @@ export const AttributesTab = () => {
                 setData(
                   filter === "allGroups"
                     ? config.attributes
-                    : config.attributes?.filter((attr) => attr.group === filter)
+                    : config.attributes?.filter(
+                        (attr) => attr.group === filter,
+                      ),
                 );
                 toggleIsFilterTypeDropdownOpen();
               }}
@@ -172,18 +174,18 @@ export const AttributesTab = () => {
         }}
         actions={[
           {
-            title: t("common:edit"),
+            title: t("edit"),
             onClick: (_key, _idx, component) => {
               navigate(
                 toAttribute({
                   realm: realmName,
                   attributeName: component.name,
-                })
+                }),
               );
             },
           },
           {
-            title: t("common:delete"),
+            title: t("delete"),
             isActionable: ({ name }) => !RESTRICTED_ATTRIBUTES.includes(name!),
             onClick: (_key, _idx, component) => {
               setAttributeToDelete(component.name);

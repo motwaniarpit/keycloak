@@ -29,7 +29,7 @@ export const Header = ({
   noDivider = false,
   dropdownItems = [],
 }: HeaderProps) => {
-  const { t } = useTranslation("user-federation");
+  const { t } = useTranslation();
   const { id } = useParams<Partial<CustomUserFederationRouteParams>>();
   const navigate = useNavigate();
 
@@ -41,7 +41,7 @@ export const Header = ({
   const [toggleDisableDialog, DisableConfirm] = useConfirmDialog({
     titleKey: "user-federation:userFedDisableConfirmTitle",
     messageKey: "user-federation:userFedDisableConfirm",
-    continueButtonLabel: "common:disable",
+    continueButtonLabel: "disable",
     onConfirm: () => {
       setValue("config.enabled[0]", "false");
       save();
@@ -51,7 +51,7 @@ export const Header = ({
   const [toggleDeleteDialog, DeleteConfirm] = useConfirmDialog({
     titleKey: "user-federation:userFedDeleteConfirmTitle",
     messageKey: "user-federation:userFedDeleteConfirm",
-    continueButtonLabel: "common:delete",
+    continueButtonLabel: "delete",
     continueButtonVariant: ButtonVariant.danger,
     onConfirm: async () => {
       try {
@@ -69,8 +69,8 @@ export const Header = ({
       <DisableConfirm />
       <DeleteConfirm />
       <Controller
-        name="config.enabled[0]"
-        defaultValue={["true"][0]}
+        name="config.enabled"
+        defaultValue={["true"]}
         control={control}
         render={({ field }) =>
           !id ? (
@@ -94,12 +94,12 @@ export const Header = ({
                   {t("deleteProvider")}
                 </DropdownItem>,
               ]}
-              isEnabled={field.value === "true"}
+              isEnabled={field.value?.[0] === "true" || field.value === "true"}
               onToggle={(value) => {
                 if (!value) {
                   toggleDisableDialog();
                 } else {
-                  field.onChange(value.toString());
+                  field.onChange([value.toString()]);
                   save();
                 }
               }}

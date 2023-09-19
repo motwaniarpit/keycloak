@@ -25,14 +25,12 @@ import { HelpItem } from "ui-shared";
 import { adminClient } from "../../admin-client";
 import { useAlerts } from "../../components/alert/Alerts";
 import { useConfirmDialog } from "../../components/confirm-dialog/ConfirmDialog";
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { useFetch } from "../../utils/useFetch";
 import { FormFields } from "../ClientDetails";
 import { ClientSecret } from "./ClientSecret";
 import { SignedJWT } from "./SignedJWT";
 import { X509 } from "./X509";
-
-import "./credentials.css";
 
 type AccessToken = {
   registrationAccessToken: string;
@@ -45,7 +43,7 @@ export type CredentialsProps = {
 };
 
 export const Credentials = ({ client, save, refresh }: CredentialsProps) => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const { addAlert, addError } = useAlerts();
   const clientId = client.id!;
 
@@ -81,12 +79,12 @@ export const Credentials = ({ client, save, refresh }: CredentialsProps) => {
       setProviders(providers);
       setSecret(secret.value!);
     },
-    []
+    [],
   );
 
   async function regenerate<T>(
     call: (clientId: string) => Promise<T>,
-    message: string
+    message: string,
   ): Promise<T | undefined> {
     try {
       const data = await call(clientId);
@@ -101,17 +99,17 @@ export const Credentials = ({ client, save, refresh }: CredentialsProps) => {
     const secret = await regenerate<CredentialRepresentation>(
       (clientId) =>
         adminClient.clients.generateNewClientSecret({ id: clientId }),
-      "clientSecret"
+      "clientSecret",
     );
     setSecret(secret?.value || "");
     refresh();
   };
 
   const [toggleClientSecretConfirm, ClientSecretConfirm] = useConfirmDialog({
-    titleKey: "clients:confirmClientSecretTitle",
-    messageKey: "clients:confirmClientSecretBody",
-    continueButtonLabel: "common:yes",
-    cancelButtonLabel: "common:no",
+    titleKey: "confirmClientSecretTitle",
+    messageKey: "confirmClientSecretBody",
+    continueButtonLabel: "yes",
+    cancelButtonLabel: "no",
     onConfirm: regenerateClientSecret,
   });
 
@@ -119,16 +117,16 @@ export const Credentials = ({ client, save, refresh }: CredentialsProps) => {
     const accessToken = await regenerate<AccessToken>(
       (clientId) =>
         adminClient.clients.generateRegistrationAccessToken({ id: clientId }),
-      "accessToken"
+      "accessToken",
     );
     setAccessToken(accessToken?.registrationAccessToken || "");
   };
 
   const [toggleAccessTokenConfirm, AccessTokenConfirm] = useConfirmDialog({
-    titleKey: "clients:confirmAccessTokenTitle",
-    messageKey: "clients:confirmAccessTokenBody",
-    continueButtonLabel: "common:yes",
-    cancelButtonLabel: "common:no",
+    titleKey: "confirmAccessTokenTitle",
+    messageKey: "confirmAccessTokenBody",
+    continueButtonLabel: "yes",
+    cancelButtonLabel: "no",
     onConfirm: regenerateAccessToken,
   });
 
@@ -150,8 +148,8 @@ export const Credentials = ({ client, save, refresh }: CredentialsProps) => {
               fieldId="kc-client-authenticator-type"
               labelIcon={
                 <HelpItem
-                  helpText={t("clients-help:client-authenticator-type")}
-                  fieldLabelId="clients:clientAuthenticator"
+                  helpText={t("client-authenticator-type")}
+                  fieldLabelId="clientAuthenticator"
                 />
               }
             >
@@ -187,19 +185,18 @@ export const Credentials = ({ client, save, refresh }: CredentialsProps) => {
               />
             </FormGroup>
             {(clientAuthenticatorType === "client-jwt" ||
-              clientAuthenticatorType === "client-secret-jwt") && <SignedJWT />}
+              clientAuthenticatorType === "client-secret-jwt") && (
+              <SignedJWT clientAuthenticatorType={clientAuthenticatorType} />
+            )}
             {clientAuthenticatorType === "client-jwt" && (
-              <Alert
-                variant="info"
-                isInline
-                className="kc-signedJWTAlert"
-                title={t("signedJWTConfirm")}
-              />
+              <FormGroup>
+                <Alert variant="info" isInline title={t("signedJWTConfirm")} />
+              </FormGroup>
             )}
             {clientAuthenticatorType === "client-x509" && <X509 />}
             <ActionGroup>
               <Button variant="primary" type="submit" isDisabled={!isDirty}>
-                {t("common:save")}
+                {t("save")}
               </Button>
             </ActionGroup>
           </CardBody>
@@ -223,8 +220,8 @@ export const Credentials = ({ client, save, refresh }: CredentialsProps) => {
               fieldId="kc-access-token"
               labelIcon={
                 <HelpItem
-                  helpText={t("clients-help:registration-access-token")}
-                  fieldLabelId="clients:registrationAccessToken"
+                  helpText={t("registration-access-token")}
+                  fieldLabelId="registrationAccessToken"
                 />
               }
             >

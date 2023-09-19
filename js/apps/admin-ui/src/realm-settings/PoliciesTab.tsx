@@ -37,7 +37,7 @@ import { toEditClientPolicy } from "./routes/EditClientPolicy";
 import "./realm-settings-section.css";
 
 export const PoliciesTab = () => {
-  const { t } = useTranslation("realm-settings");
+  const { t } = useTranslation();
   const { addAlert, addError } = useAlerts();
   const { realm } = useRealm();
   const navigate = useNavigate();
@@ -60,7 +60,7 @@ export const PoliciesTab = () => {
         setTablePolicies(policies.policies || []),
         setCode(prettyPrintJSON(policies.policies));
     },
-    [key]
+    [key],
   );
 
   const loader = async () => policies ?? [];
@@ -76,7 +76,7 @@ export const PoliciesTab = () => {
           ...policy,
           enabled,
         };
-      }
+      },
     );
 
     try {
@@ -86,7 +86,7 @@ export const PoliciesTab = () => {
       navigate(toClientPolicies({ realm, tab: "policies" }));
       addAlert(
         t("realm-settings:updateClientPolicySuccess"),
-        AlertVariant.success
+        AlertVariant.success,
       );
     } catch (error) {
       addError("realm-settings:updateClientPolicyError", error);
@@ -105,7 +105,7 @@ export const PoliciesTab = () => {
     const [toggleDisableDialog, DisableConfirm] = useConfirmDialog({
       titleKey: "realm-settings:disablePolicyConfirmTitle",
       messageKey: "realm-settings:disablePolicyConfirm",
-      continueButtonLabel: "common:disable",
+      continueButtonLabel: "disable",
       onConfirm: () => {
         form.setValue(clientPolicy.name!, false);
         saveStatus();
@@ -122,8 +122,8 @@ export const PoliciesTab = () => {
           control={form.control}
           render={({ field }) => (
             <Switch
-              label={t("common:enabled")}
-              labelOff={t("common:disabled")}
+              label={t("enabled")}
+              labelOff={t("disabled")}
               isChecked={field.value}
               onChange={(value) => {
                 if (!value) {
@@ -155,7 +155,7 @@ export const PoliciesTab = () => {
         });
         addAlert(
           t("realm-settings:updateClientPoliciesSuccess"),
-          AlertVariant.success
+          AlertVariant.success,
         );
         refresh();
       } catch (error) {
@@ -176,7 +176,7 @@ export const PoliciesTab = () => {
     continueButtonVariant: ButtonVariant.danger,
     onConfirm: async () => {
       const updatedPolicies = policies?.filter(
-        (policy) => policy.name !== selectedPolicy?.name
+        (policy) => policy.name !== selectedPolicy?.name,
       );
 
       try {
@@ -258,7 +258,7 @@ export const PoliciesTab = () => {
           }
           actions={[
             {
-              title: t("common:delete"),
+              title: t("delete"),
               onRowClick: (item) => {
                 toggleDeleteDialog();
                 setSelectedPolicy(item);

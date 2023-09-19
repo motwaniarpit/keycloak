@@ -16,6 +16,10 @@
  */
 package org.keycloak.services.resources.admin;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.extensions.Extension;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.authentication.RequiredActionProvider;
@@ -54,7 +58,10 @@ import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.models.utils.RoleUtils;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.utils.RedirectUtils;
+import org.keycloak.provider.ConfiguredProvider;
 import org.keycloak.provider.ProviderFactory;
+import org.keycloak.representations.idm.UserProfileAttributeMetadata;
+import org.keycloak.representations.idm.UserProfileMetadata;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.ErrorRepresentation;
 import org.keycloak.representations.idm.FederatedIdentityRepresentation;
@@ -66,15 +73,18 @@ import org.keycloak.services.ErrorResponse;
 import org.keycloak.services.ErrorResponseException;
 import org.keycloak.services.ForbiddenException;
 import org.keycloak.services.ServicesLogger;
+import org.keycloak.services.Urls;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.managers.BruteForceProtector;
 import org.keycloak.services.managers.UserConsentManager;
 import org.keycloak.services.managers.UserSessionManager;
+import org.keycloak.services.resources.KeycloakOpenAPI;
 import org.keycloak.services.resources.LoginActionsService;
-import org.keycloak.services.resources.account.AccountFormService;
 import org.keycloak.services.resources.admin.permissions.AdminPermissionEvaluator;
 import org.keycloak.services.validation.Validation;
 import org.keycloak.storage.ReadOnlyException;
+import org.keycloak.userprofile.AttributeMetadata;
+import org.keycloak.userprofile.AttributeValidatorMetadata;
 import org.keycloak.userprofile.UserProfile;
 import org.keycloak.userprofile.UserProfileProvider;
 import org.keycloak.userprofile.ValidationException;
@@ -97,6 +107,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.UriBuilder;
+import org.keycloak.validate.Validators;
+
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -125,6 +137,7 @@ import static org.keycloak.utils.LockObjectsForModification.lockUserSessionsForM
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
+@Extension(name = KeycloakOpenAPI.Profiles.ADMIN, value = "")
 public class UserResource {
     private static final Logger logger = Logger.getLogger(UserResource.class);
 
@@ -159,6 +172,8 @@ public class UserResource {
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Update the user")
     public Response updateUser(final UserRepresentation rep) {
 
         auth.users().requireManage(user);
@@ -292,7 +307,11 @@ public class UserResource {
     @GET
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
-    public UserRepresentation getUser() {
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Get representation of the user")
+    public UserRepresentation getUser(
+            @Parameter(description = "Indicates if the user profile metadata should be added to the response") @QueryParam("userProfileMetadata") boolean userProfileMetadata
+    ) {
         auth.users().requireView(user);
 
         UserRepresentation rep = ModelToRepresentation.toRepresentation(session, realm, user);
@@ -315,6 +334,10 @@ public class UserResource {
             rep.setAttributes(readableAttributes);
         }
 
+        if (userProfileMetadata) {
+            rep.setUserProfileMetadata(createUserProfileMetadata(profile));
+        }
+
         return rep;
     }
 
@@ -327,10 +350,20 @@ public class UserResource {
     @POST
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Impersonate the user")
     public Map<String, Object> impersonate() {
         ProfileHelper.requireFeature(Profile.Feature.IMPERSONATION);
 
         auth.users().requireImpersonate(user);
+
+        if (!user.isEnabled()) {
+            throw ErrorResponse.error("User is disabled", Status.BAD_REQUEST);
+        }
+        if (user.getServiceAccountClientLink() != null) {
+            throw ErrorResponse.error("Service accounts cannot be impersonated", Status.BAD_REQUEST);
+        }
+
         RealmModel authenticatedRealm = auth.adminAuth().getRealm();
         // if same realm logout before impersonation
         boolean sameRealm = false;
@@ -354,7 +387,7 @@ public class UserResource {
         userSession.setNote(IMPERSONATOR_USERNAME.toString(), impersonator);
 
         AuthenticationManager.createLoginCookie(session, realm, userSession.getUser(), userSession, session.getContext().getUri(), clientConnection);
-        URI redirect = AccountFormService.accountServiceBaseUrl(session.getContext().getUri()).build(realm.getName());
+        URI redirect = Urls.accountBase(session.getContext().getUri().getBaseUri()).build(realm.getName());
         Map<String, Object> result = new HashMap<>();
         result.put("sameRealm", sameRealm);
         result.put("redirect", redirect.toString());
@@ -377,6 +410,8 @@ public class UserResource {
     @GET
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Get sessions associated with the user")
     public Stream<UserSessionRepresentation> getSessions() {
         auth.users().requireView(user);
         return session.sessions().getUserSessionsStream(realm, user).map(ModelToRepresentation::toRepresentation);
@@ -391,6 +426,8 @@ public class UserResource {
     @GET
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Get offline sessions associated with the user and client")
     public Stream<UserSessionRepresentation> getOfflineSessions(final @PathParam("clientUuid") String clientUuid) {
         auth.users().requireView(user);
         ClientModel client = realm.getClientById(clientUuid);
@@ -411,6 +448,8 @@ public class UserResource {
     @GET
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Get social logins associated with the user")
     public Stream<FederatedIdentityRepresentation> getFederatedIdentity() {
         auth.users().requireView(user);
         return getFederatedIdentities(user);
@@ -433,7 +472,9 @@ public class UserResource {
     @Path("federated-identity/{provider}")
     @POST
     @NoCache
-    public Response addFederatedIdentity(final @PathParam("provider") String provider, FederatedIdentityRepresentation rep) {
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Add a social login provider to the user")
+    public Response addFederatedIdentity(final @Parameter(description = "Social login provider id") @PathParam("provider") String provider, FederatedIdentityRepresentation rep) {
         auth.users().requireManage(user);
         if (session.users().getFederatedIdentity(realm, user, provider) != null) {
             throw ErrorResponse.exists("User is already linked with provider");
@@ -453,7 +494,9 @@ public class UserResource {
     @Path("federated-identity/{provider}")
     @DELETE
     @NoCache
-    public void removeFederatedIdentity(final @PathParam("provider") String provider) {
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Remove a social login provider from user")
+    public void removeFederatedIdentity(final @Parameter(description = "Social login provider id") @PathParam("provider") String provider) {
         auth.users().requireManage(user);
         if (!session.users().removeFederatedIdentity(realm, user, provider)) {
             throw new NotFoundException("Link not found");
@@ -470,6 +513,8 @@ public class UserResource {
     @GET
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Get consents granted by the user")
     public Stream<Map<String, Object>> getConsents() {
         auth.users().requireView(user);
 
@@ -538,7 +583,9 @@ public class UserResource {
     @Path("consents/{client}")
     @DELETE
     @NoCache
-    public void revokeConsent(final @PathParam("client") String clientId) {
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Revoke consent and offline tokens for particular client from user")
+    public void revokeConsent(final @Parameter(description = "Client id") @PathParam("client") String clientId) {
         auth.users().requireManage(user);
 
         ClientModel client = realm.getClientByClientId(clientId);
@@ -561,6 +608,8 @@ public class UserResource {
      */
     @Path("logout")
     @POST
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Remove all user sessions associated with the user Also send notification to all clients that have an admin URL to invalidate the sessions for the particular user.")
     public void logout() {
         auth.users().requireManage(user);
 
@@ -578,6 +627,8 @@ public class UserResource {
      */
     @DELETE
     @NoCache
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Delete the user")
     public Response deleteUser() {
         auth.users().requireManage(user);
 
@@ -605,6 +656,8 @@ public class UserResource {
     @Path("disable-credential-types")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Disable all credentials for a user of a specific type")
     public void disableCredentialType(List<String> credentialTypes) {
         auth.users().requireManage(user);
         if (credentialTypes == null) return;
@@ -622,7 +675,9 @@ public class UserResource {
     @Path("reset-password")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public void resetPassword(CredentialRepresentation cred) {
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Set up a new password for the user.")
+    public void resetPassword(@Parameter(description = "The representation must contain a rawPassword with the plain-text password") CredentialRepresentation cred) {
         auth.users().requireManage(user);
         if (cred == null || cred.getValue() == null) {
             throw new BadRequestException("No password provided");
@@ -658,6 +713,8 @@ public class UserResource {
     @Path("credentials")
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation()
     public Stream<CredentialRepresentation> credentials(){
         auth.users().requireView(user);
         return user.credentialManager().getStoredCredentialsStream()
@@ -676,10 +733,11 @@ public class UserResource {
     @Path("configured-user-storage-credential-types")
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Return credential types, which are provided by the user storage where user is stored.", description = "Returned values can contain for example \"password\", \"otp\" etc. This will always return empty list for \"local\" users, which are not backed by any user storage")
     public Stream<String> getConfiguredUserStorageCredentialTypes() {
-        // This has "requireManage" due the compatibility with "credentials()" endpoint. Strictly said, it is reading endpoint, not writing,
-        // so may be revisited if to rather use "requireView" here in the future.
-        auth.users().requireManage(user);
+        // changed to "requireView" as per issue #20783
+        auth.users().requireView(user);
         return user.credentialManager().getConfiguredUserStorageCredentialTypesStream();
     }
 
@@ -691,6 +749,8 @@ public class UserResource {
     @Path("credentials/{credentialId}")
     @DELETE
     @NoCache
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Remove a credential for a user")
     public void removeCredential(final @PathParam("credentialId") String credentialId) {
         auth.users().requireManage(user);
         CredentialModel credential = user.credentialManager().getStoredCredentialById(credentialId);
@@ -709,6 +769,8 @@ public class UserResource {
     @PUT
     @Consumes(MediaType.TEXT_PLAIN)
     @Path("credentials/{credentialId}/userLabel")
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Update a credential label for a user")
     public void setCredentialUserLabel(final @PathParam("credentialId") String credentialId, String userLabel) {
         auth.users().requireManage(user);
         CredentialModel credential = user.credentialManager().getStoredCredentialById(credentialId);
@@ -726,7 +788,9 @@ public class UserResource {
      */
     @Path("credentials/{credentialId}/moveToFirst")
     @POST
-    public void moveCredentialToFirst(final @PathParam("credentialId") String credentialId){
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Move a credential to a first position in the credentials list of the user")
+    public void moveCredentialToFirst(final @Parameter(description = "The credential to move") @PathParam("credentialId") String credentialId){
         moveCredentialAfter(credentialId, null);
     }
 
@@ -737,7 +801,10 @@ public class UserResource {
      */
     @Path("credentials/{credentialId}/moveAfter/{newPreviousCredentialId}")
     @POST
-    public void moveCredentialAfter(final @PathParam("credentialId") String credentialId, final @PathParam("newPreviousCredentialId") String newPreviousCredentialId){
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation( summary = "Move a credential to a position behind another credential")
+    public void moveCredentialAfter(final @Parameter(description = "The credential to move") @PathParam("credentialId") String credentialId,
+                                    final @Parameter(description = "The credential that will be the previous element in the list. If set to null, the moved credential will be the first element in the list.") @PathParam("newPreviousCredentialId") String newPreviousCredentialId){
         auth.users().requireManage(user);
         CredentialModel credential = user.credentialManager().getStoredCredentialById(credentialId);
         if (credential == null) {
@@ -764,8 +831,13 @@ public class UserResource {
     @Path("reset-password-email")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response resetPasswordEmail(@QueryParam(OIDCLoginProtocol.REDIRECT_URI_PARAM) String redirectUri,
-                                       @QueryParam(OIDCLoginProtocol.CLIENT_ID_PARAM) String clientId) {
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation(
+            summary = "Send an email to the user with a link they can click to reset their password.",
+            description = "The redirectUri and clientId parameters are optional. The default for the redirect is the account client. This endpoint has been deprecated.  Please use the execute-actions-email passing a list with UPDATE_PASSWORD within it.",
+            deprecated = true)
+    public Response resetPasswordEmail(@Parameter(description = "redirect uri") @QueryParam(OIDCLoginProtocol.REDIRECT_URI_PARAM) String redirectUri,
+                                       @Parameter(description = "client id") @QueryParam(OIDCLoginProtocol.CLIENT_ID_PARAM) String clientId) {
         List<String> actions = new LinkedList<>();
         actions.add(UserModel.RequiredAction.UPDATE_PASSWORD.name());
         return executeActionsEmail(redirectUri, clientId, null, actions);
@@ -789,10 +861,15 @@ public class UserResource {
     @Path("execute-actions-email")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response executeActionsEmail(@QueryParam(OIDCLoginProtocol.REDIRECT_URI_PARAM) String redirectUri,
-                                        @QueryParam(OIDCLoginProtocol.CLIENT_ID_PARAM) String clientId,
-                                        @QueryParam("lifespan") Integer lifespan,
-                                        List<String> actions) {
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation(
+            summary = "Send an email to the user with a link they can click to execute particular actions.",
+            description = "An email contains a link the user can click to perform a set of required actions. The redirectUri and clientId parameters are optional. If no redirect is given, then there will be no link back to click after actions have completed. Redirect uri must be a valid uri for the particular clientId."
+    )
+    public Response executeActionsEmail(@Parameter(description = "Redirect uri") @QueryParam(OIDCLoginProtocol.REDIRECT_URI_PARAM) String redirectUri,
+                                        @Parameter(description = "Client id") @QueryParam(OIDCLoginProtocol.CLIENT_ID_PARAM) String clientId,
+                                        @Parameter(description = "Number of seconds after which the generated token expires") @QueryParam("lifespan") Integer lifespan,
+                                        @Parameter(description = "Required actions the user needs to complete") List<String> actions) {
         auth.users().requireManage(user);
 
         if (user.getEmail() == null) {
@@ -876,7 +953,14 @@ public class UserResource {
     @Path("send-verify-email")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response sendVerifyEmail(@QueryParam(OIDCLoginProtocol.REDIRECT_URI_PARAM) String redirectUri, @QueryParam(OIDCLoginProtocol.CLIENT_ID_PARAM) String clientId) {
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation(
+    summary = "Send an email-verification email to the user An email contains a link the user can click to verify their email address.",
+            description = "The redirectUri and clientId parameters are optional. The default for the redirect is the account client."
+    )
+    public Response sendVerifyEmail(
+            @Parameter(description = "Redirect uri") @QueryParam(OIDCLoginProtocol.REDIRECT_URI_PARAM) String redirectUri,
+            @Parameter(description = "Client id") @QueryParam(OIDCLoginProtocol.CLIENT_ID_PARAM) String clientId) {
         List<String> actions = new LinkedList<>();
         actions.add(UserModel.RequiredAction.VERIFY_EMAIL.name());
         return executeActionsEmail(redirectUri, clientId, null, actions);
@@ -886,6 +970,8 @@ public class UserResource {
     @Path("groups")
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation()
     public Stream<GroupRepresentation> groupMembership(@QueryParam("search") String search,
                                                        @QueryParam("first") Integer firstResult,
                                                        @QueryParam("max") Integer maxResults,
@@ -903,6 +989,8 @@ public class UserResource {
     @NoCache
     @Path("groups/count")
     @Produces(MediaType.APPLICATION_JSON)
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation()
     public Map<String, Long> getGroupMembershipCount(@QueryParam("search") String search) {
         auth.users().requireView(user);
         Long results;
@@ -920,6 +1008,8 @@ public class UserResource {
     @DELETE
     @Path("groups/{groupId}")
     @NoCache
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation()
     public void removeMembership(@PathParam("groupId") String groupId) {
         auth.users().requireManageGroupMembership(user);
 
@@ -944,6 +1034,8 @@ public class UserResource {
     @PUT
     @Path("groups/{groupId}")
     @NoCache
+    @Tag(name = KeycloakOpenAPI.Admin.Tags.USERS)
+    @Operation()
     public void joinGroup(@PathParam("groupId") String groupId) {
         auth.users().requireManageGroupMembership(user);
         GroupModel group = session.groups().getGroupById(realm, groupId);
@@ -974,5 +1066,36 @@ public class UserResource {
         }
         rep.setLastAccess(Time.toMillis(clientSession.getTimestamp()));
         return rep;
+    }
+
+    private UserProfileMetadata createUserProfileMetadata(final UserProfile profile) {
+        Map<String, List<String>> am = profile.getAttributes().getReadable();
+
+        if(am == null)
+            return null;
+
+        List<UserProfileAttributeMetadata> attributes = am.keySet().stream()
+                .map(name -> profile.getAttributes().getMetadata(name))
+                .filter(Objects::nonNull)
+                .sorted((a,b) -> Integer.compare(a.getGuiOrder(), b.getGuiOrder()))
+                .map(sam -> toRestMetadata(sam, profile))
+                .collect(Collectors.toList());
+        return new UserProfileMetadata(attributes);
+    }
+
+    private UserProfileAttributeMetadata toRestMetadata(AttributeMetadata am, UserProfile profile) {
+        return new UserProfileAttributeMetadata(am.getName(),
+                am.getAttributeDisplayName(),
+                profile.getAttributes().isRequired(am.getName()),
+                profile.getAttributes().isReadOnly(am.getName()),
+                am.getAnnotations(),
+                toValidatorMetadata(am));
+    }
+
+    private Map<String, Map<String, Object>> toValidatorMetadata(AttributeMetadata am){
+        // we return only validators which are instance of ConfiguredProvider. Others are expected as internal.
+        return am.getValidators() == null ? null : am.getValidators().stream()
+                .filter(avm -> (Validators.validator(session, avm.getValidatorId()) instanceof ConfiguredProvider))
+                .collect(Collectors.toMap(AttributeValidatorMetadata::getValidatorId, AttributeValidatorMetadata::getValidatorConfig));
     }
 }

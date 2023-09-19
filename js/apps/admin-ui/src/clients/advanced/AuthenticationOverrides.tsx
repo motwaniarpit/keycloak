@@ -10,10 +10,11 @@ import { sortBy } from "lodash-es";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+
+import { FormAccess } from "../../components/form/FormAccess";
 import { HelpItem } from "ui-shared";
 
 import { adminClient } from "../../admin-client";
-import { FormAccess } from "../../components/form-access/FormAccess";
 import { useFetch } from "../../utils/useFetch";
 
 type AuthenticationOverridesProps = {
@@ -29,7 +30,7 @@ export const AuthenticationOverrides = ({
   reset,
   hasConfigureAccess,
 }: AuthenticationOverridesProps) => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const [flows, setFlows] = useState<JSX.Element[]>([]);
   const [browserFlowOpen, setBrowserFlowOpen] = useState(false);
   const [directGrantOpen, setDirectGrantOpen] = useState(false);
@@ -45,7 +46,7 @@ export const AuthenticationOverrides = ({
       filteredFlows = sortBy(filteredFlows, [(f) => f.alias]);
       setFlows([
         <SelectOption key="empty" value="">
-          {t("common:choose")}
+          {t("choose")}
         </SelectOption>,
         ...filteredFlows.map((flow) => (
           <SelectOption key={flow.id} value={flow.id}>
@@ -54,7 +55,7 @@ export const AuthenticationOverrides = ({
         )),
       ]);
     },
-    []
+    [],
   );
 
   return (
@@ -68,8 +69,8 @@ export const AuthenticationOverrides = ({
         fieldId="browserFlow"
         labelIcon={
           <HelpItem
-            helpText={t("clients-help:browserFlow")}
-            fieldLabelId="clients:browserFlow"
+            helpText={t("browserFlowHelp")}
+            fieldLabelId="browserFlow"
           />
         }
       >
@@ -100,8 +101,8 @@ export const AuthenticationOverrides = ({
           fieldId="directGrant"
           labelIcon={
             <HelpItem
-              helpText={t("clients-help:directGrant")}
-              fieldLabelId="clients:directGrant"
+              helpText={t("directGrantHelp")}
+              fieldLabelId="directGrant"
             />
           }
         >
@@ -133,14 +134,14 @@ export const AuthenticationOverrides = ({
           onClick={save}
           data-testid="OIDCAuthFlowOverrideSave"
         >
-          {t("common:save")}
+          {t("save")}
         </Button>
         <Button
           variant="link"
           onClick={reset}
           data-testid="OIDCAuthFlowOverrideRevert"
         >
-          {t("common:revert")}
+          {t("revert")}
         </Button>
       </ActionGroup>
     </FormAccess>

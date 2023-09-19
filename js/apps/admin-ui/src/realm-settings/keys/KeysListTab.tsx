@@ -27,6 +27,8 @@ import { toKeysTab } from "../routes/KeysTab";
 
 import "../realm-settings-section.css";
 
+import useFormatDate from "../../utils/useFormatDate";
+
 const FILTER_OPTIONS = ["ACTIVE", "PASSIVE", "DISABLED"] as const;
 type FilterType = (typeof FILTER_OPTIONS)[number];
 
@@ -43,7 +45,7 @@ type SelectFilterProps = {
 };
 
 const SelectFilter = ({ onFilter }: SelectFilterProps) => {
-  const { t } = useTranslation("realm-settings");
+  const { t } = useTranslation();
   const [filterType, setFilterType] = useState<FilterType>(FILTER_OPTIONS[0]);
 
   const [filterDropdownOpen, toggleFilter] = useToggle();
@@ -80,8 +82,9 @@ const SelectFilter = ({ onFilter }: SelectFilterProps) => {
 };
 
 export const KeysListTab = ({ realmComponents }: KeysListTabProps) => {
-  const { t } = useTranslation("realm-settings");
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const formatDate = useFormatDate();
 
   const [publicKey, setPublicKey] = useState("");
   const [certificate, setCertificate] = useState("");
@@ -97,19 +100,19 @@ export const KeysListTab = ({ realmComponents }: KeysListTabProps) => {
       return keysMetaData.keys?.map((key) => {
         const provider = realmComponents.find(
           (component: ComponentRepresentation) =>
-            component.id === key.providerId
+            component.id === key.providerId,
         );
         return { ...key, provider: provider?.name } as KeyData;
       })!;
     },
     setKeyData,
-    []
+    [],
   );
 
   const [togglePublicKeyDialog, PublicKeyDialog] = useConfirmDialog({
     titleKey: t("publicKeys").slice(0, -1),
     messageKey: publicKey,
-    continueButtonLabel: "common:close",
+    continueButtonLabel: "close",
     continueButtonVariant: ButtonVariant.primary,
     onConfirm: () => Promise.resolve(),
   });
@@ -117,7 +120,7 @@ export const KeysListTab = ({ realmComponents }: KeysListTabProps) => {
   const [toggleCertificateDialog, CertificateDialog] = useConfirmDialog({
     titleKey: t("certificate"),
     messageKey: certificate,
-    continueButtonLabel: "common:close",
+    continueButtonLabel: "close",
     continueButtonVariant: ButtonVariant.primary,
     onConfirm: () => Promise.resolve(),
   });
@@ -142,7 +145,7 @@ export const KeysListTab = ({ realmComponents }: KeysListTabProps) => {
               setFilteredKeyData(
                 filterType !== FILTER_OPTIONS[0]
                   ? keyData!.filter(({ status }) => status === filterType)
-                  : undefined
+                  : undefined,
               )
             }
           />
@@ -177,6 +180,14 @@ export const KeysListTab = ({ realmComponents }: KeysListTabProps) => {
             name: "provider",
             displayKey: "realm-settings:provider",
             cellRenderer: ({ provider }: KeyData) => provider || "",
+            cellFormatters: [emptyFormatter()],
+            transforms: [cellWidth(10)],
+          },
+          {
+            name: "validTo",
+            displayKey: "validTo",
+            cellRenderer: ({ validTo }: KeyData) =>
+              validTo ? formatDate(new Date(validTo)) : "",
             cellFormatters: [emptyFormatter()],
             transforms: [cellWidth(10)],
           },

@@ -40,7 +40,7 @@
             org.keycloak.adapters.servlet.*
         </keycloak.osgi.export>
         <keycloak.osgi.import>
-            javax.servlet.*;version="[3.1,5)";resolution:=optional,
+            jakarta.servlet.*;version="[3.1,5)";resolution:=optional,
             org.keycloak.*;version="${project.version}",
             *;resolution:=optional
         </keycloak.osgi.import>
@@ -81,7 +81,7 @@
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
+            <artifactId>bcprov-jdk18on</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

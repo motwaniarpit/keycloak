@@ -13,13 +13,13 @@ export type NewPermissionParams = {
 };
 
 const PermissionDetails = lazy(
-  () => import("../authorization/PermissionDetails")
+  () => import("../authorization/PermissionDetails"),
 );
 
 export const NewPermissionRoute: AppRouteObject = {
   path: "/:realm/clients/:id/authorization/permission/new/:permissionType",
   element: <PermissionDetails />,
-  breadcrumb: (t) => t("clients:createPermission"),
+  breadcrumb: (t) => t("createPermission"),
   handle: {
     access: "view-clients",
   },

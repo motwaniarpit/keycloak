@@ -9,7 +9,7 @@ import { isEqual } from "lodash-es";
 import { Controller, UseFormReturn, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { HelpItem } from "ui-shared";
 import { WizardSectionHeader } from "../../components/wizard-section-header/WizardSectionHeader";
 import useToggle from "../../utils/useToggle";
@@ -22,7 +22,7 @@ export type SettingsCacheProps = {
 };
 
 const CacheFields = ({ form }: { form: UseFormReturn }) => {
-  const { t } = useTranslation("user-federation");
+  const { t } = useTranslation();
 
   const [isCachePolicyOpen, toggleCachePolicy] = useToggle();
   const [isEvictionHourOpen, toggleEvictionHour] = useToggle();
@@ -50,7 +50,7 @@ const CacheFields = ({ form }: { form: UseFormReturn }) => {
     hourOptions.push(
       <SelectOption key={index} value={[`${index}`]}>
         {hourDisplay}
-      </SelectOption>
+      </SelectOption>,
     );
   }
 
@@ -69,7 +69,7 @@ const CacheFields = ({ form }: { form: UseFormReturn }) => {
     minuteOptions.push(
       <SelectOption key={index} value={[`${index}`]}>
         {minuteDisplay}
-      </SelectOption>
+      </SelectOption>,
     );
   }
 
@@ -143,25 +143,25 @@ const CacheFields = ({ form }: { form: UseFormReturn }) => {
                 variant={SelectVariant.single}
               >
                 <SelectOption key={0} value="1" isPlaceholder>
-                  {t("common:Sunday")}
+                  {t("Sunday")}
                 </SelectOption>
                 <SelectOption key={1} value="2">
-                  {t("common:Monday")}
+                  {t("Monday")}
                 </SelectOption>
                 <SelectOption key={2} value="3">
-                  {t("common:Tuesday")}
+                  {t("Tuesday")}
                 </SelectOption>
                 <SelectOption key={3} value="4">
-                  {t("common:Wednesday")}
+                  {t("Wednesday")}
                 </SelectOption>
                 <SelectOption key={4} value="5">
-                  {t("common:Thursday")}
+                  {t("Thursday")}
                 </SelectOption>
                 <SelectOption key={5} value="6">
-                  {t("common:Friday")}
+                  {t("Friday")}
                 </SelectOption>
                 <SelectOption key={6} value="7">
-                  {t("common:Saturday")}
+                  {t("Saturday")}
                 </SelectOption>
               </Select>
             )}
@@ -287,15 +287,14 @@ export const SettingsCache = ({
   showSectionDescription = false,
   unWrap = false,
 }: SettingsCacheProps) => {
-  const { t } = useTranslation("user-federation");
-  const { t: helpText } = useTranslation("user-federation-help");
+  const { t } = useTranslation();
 
   return (
     <>
       {showSectionHeading && (
         <WizardSectionHeader
           title={t("cacheSettings")}
-          description={helpText("cacheSettingsDescription")}
+          description={t("cacheSettingsDescription")}
           showDescription={showSectionDescription}
         />
       )}

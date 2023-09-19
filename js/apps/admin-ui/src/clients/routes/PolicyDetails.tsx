@@ -11,20 +11,20 @@ export type PolicyDetailsParams = {
 };
 
 const PolicyDetails = lazy(
-  () => import("../authorization/policy/PolicyDetails")
+  () => import("../authorization/policy/PolicyDetails"),
 );
 
 export const PolicyDetailsRoute: AppRouteObject = {
   path: "/:realm/clients/:id/authorization/policy/:policyId/:policyType",
   element: <PolicyDetails />,
-  breadcrumb: (t) => t("clients:policyDetails"),
+  breadcrumb: (t) => t("policyDetails"),
   handle: {
     access: "view-clients",
   },
 };
 
 export const toPolicyDetails = (
-  params: PolicyDetailsParams
+  params: PolicyDetailsParams,
 ): Partial<Path> => ({
   pathname: generatePath(PolicyDetailsRoute.path, params),
 });

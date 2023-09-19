@@ -23,10 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
-import jakarta.persistence.Parameter;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -181,7 +181,10 @@ public abstract class JpaMapStorage<RE extends JpaRootEntity, E extends Abstract
         }
 
         JpaPredicateFunction<RE> predicateFunc = mcb.getPredicateFunc();
-        if (this.isExpirableEntity) {
+        if (this.isExpirableEntity && (queryParameters.getLimit() != null || queryParameters.getOffset() != null)) {
+            // only when using pagination exclude expired entities in the query directly
+            // for all other queries, remove the expired results later as those additional predicates might confuse the database
+            // to use a bad index (see: CockroachDB), and we assume that expired entities are cleaned from the DB regularly
             predicateFunc = predicateFunc != null ? predicateFunc.andThen(predicate -> cb.and(predicate, notExpired(cb, query::subquery, root)))
                                                   : this::notExpired;
         }
@@ -197,6 +200,10 @@ public abstract class JpaMapStorage<RE extends JpaRootEntity, E extends Abstract
             // In order to cache the result, the full result needs to be retrieved.
             // There is also no difference to that in Hibernate, as Hibernate will first retrieve all elements from the ResultSet.
             List<RE> resultList = emQuery.getResultList();
+            if (isExpirableEntity) {
+                // remove expired entities when those haven't been excluded by a predicate
+                resultList = resultList.stream().filter(e -> !isExpired((ExpirableEntity) e, true)).collect(Collectors.toList());
+            }
             cache.put(queryCacheKey, resultList);
 
             return closing(resultList.stream()).map(this::mapToEntityDelegateUnique);
@@ -255,7 +262,11 @@ public abstract class JpaMapStorage<RE extends JpaRootEntity, E extends Abstract
         UUID uuid = UUIDKey.INSTANCE.fromStringSafe(key);
         if (uuid == null) return false;
         removeFromCache(key);
-        em.remove(em.getReference(entityType, uuid));
+        // First find the entity, as just trying to remove it will throw an EntityNotFoundException
+        RE entity = em.find(entityType, uuid);
+        if (entity != null) {
+            em.remove(entity);
+        }
         logger.tracef("tx %d: delete entity %s", hashCode(), key);
         return true;
     }

@@ -9,20 +9,19 @@ import {
   ToolbarItem,
 } from "@patternfly/react-core";
 import { useState } from "react";
-import { Controller, useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { HelpItem } from "ui-shared";
 
 import { adminClient } from "../../admin-client";
 import { useAlerts } from "../../components/alert/Alerts";
 import { useConfirmDialog } from "../../components/confirm-dialog/ConfirmDialog";
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { ListEmptyState } from "../../components/list-empty-state/ListEmptyState";
 import {
   Action,
   KeycloakDataTable,
 } from "../../components/table-toolbar/KeycloakDataTable";
-import { TimeSelector } from "../../components/time-selector/TimeSelector";
+import { TimeSelectorForm } from "../../components/time-selector/TimeSelectorForm";
 import useFormatDate, { FORMAT_DATE_AND_TIME } from "../../utils/useFormatDate";
 import { AddHostDialog } from ".././advanced/AddHostDialog";
 import { AdvancedProps, parseResult } from "../AdvancedTab";
@@ -36,8 +35,7 @@ export const ClusteringPanel = ({
   save,
   client: { id, registeredNodes, access },
 }: AdvancedProps) => {
-  const { t } = useTranslation("clients");
-  const { control } = useFormContext();
+  const { t } = useTranslation();
   const { addAlert, addError } = useAlerts();
   const formatDate = useFormatDate();
 
@@ -54,11 +52,11 @@ export const ClusteringPanel = ({
   };
 
   const [toggleDeleteNodeConfirm, DeleteNodeConfirm] = useConfirmDialog({
-    titleKey: "clients:deleteNode",
+    titleKey: "deleteNode",
     messageKey: t("deleteNodeBody", {
       node: selectedNode,
     }),
-    continueButtonLabel: "common:delete",
+    continueButtonLabel: "delete",
     continueButtonVariant: ButtonVariant.danger,
     onConfirm: async () => {
       try {
@@ -77,7 +75,7 @@ export const ClusteringPanel = ({
         refresh();
         addAlert(t("deleteNodeSuccess"), AlertVariant.success);
       } catch (error) {
-        addError("clients:deleteNodeFail", error);
+        addError("deleteNodeFail", error);
       }
     },
   });
@@ -94,25 +92,18 @@ export const ClusteringPanel = ({
           fieldId="kc-node-reregistration-timeout"
           labelIcon={
             <HelpItem
-              helpText={t("clients-help:nodeReRegistrationTimeout")}
-              fieldLabelId="clients:nodeReRegistrationTimeout"
+              helpText={t("nodeReRegistrationTimeoutHelp")}
+              fieldLabelId="nodeReRegistrationTimeout"
             />
           }
         >
           <Split hasGutter>
             <SplitItem>
-              <Controller
-                name="nodeReRegistrationTimeout"
-                defaultValue=""
-                control={control}
-                render={({ field }) => (
-                  <TimeSelector value={field.value} onChange={field.onChange} />
-                )}
-              />
+              <TimeSelectorForm name="nodeReRegistrationTimeout" />
             </SplitItem>
             <SplitItem>
               <Button variant={ButtonVariant.secondary} onClick={() => save()}>
-                {t("common:save")}
+                {t("save")}
               </Button>
             </SplitItem>
           </Split>
@@ -141,7 +132,7 @@ export const ClusteringPanel = ({
               Promise.resolve<Node[]>(
                 Object.entries(nodes || {}).map((entry) => {
                   return { host: entry[0], registration: entry[1] };
-                })
+                }),
               )
             }
             toolbarItem={
@@ -169,7 +160,7 @@ export const ClusteringPanel = ({
             }
             actions={[
               {
-                title: t("common:delete"),
+                title: t("delete"),
                 onRowClick: (node) => {
                   setSelectedNode(node.host);
                   toggleDeleteNodeConfirm();
@@ -179,17 +170,17 @@ export const ClusteringPanel = ({
             columns={[
               {
                 name: "host",
-                displayKey: "clients:nodeHost",
+                displayKey: "nodeHost",
               },
               {
                 name: "registration",
-                displayKey: "clients:lastRegistration",
+                displayKey: "lastRegistration",
                 cellFormatters: [
                   (value) =>
                     value
                       ? formatDate(
                           new Date(parseInt(value.toString()) * 1000),
-                          FORMAT_DATE_AND_TIME
+                          FORMAT_DATE_AND_TIME,
                         )
                       : "",
                 ],

@@ -21,6 +21,7 @@ import static org.keycloak.quarkus.runtime.Environment.getProfileOrDefault;
 import static org.keycloak.quarkus.runtime.cli.Picocli.ARG_PREFIX;
 
 import java.util.Optional;
+import java.util.Properties;
 
 import io.smallrye.config.ConfigValue;
 import io.smallrye.config.SmallRyeConfig;
@@ -40,6 +41,7 @@ public final class Configuration {
 
     public static final char OPTION_PART_SEPARATOR_CHAR = '-';
     public static final String OPTION_PART_SEPARATOR = String.valueOf(OPTION_PART_SEPARATOR_CHAR);
+    private static final String KC_OPTIMIZED = NS_KEYCLOAK_PREFIX + "optimized";
 
     private Configuration() {
 
@@ -78,6 +80,14 @@ public final class Configuration {
     }
 
     public static Iterable<String> getPropertyNames() {
+        return getPropertyNames(false);
+    }
+
+    public static Iterable<String> getPropertyNames(boolean onlyPersisted) {
+        if (onlyPersisted) {
+            return PersistedConfigSource.getInstance().getPropertyNames();
+        }
+
         return getConfig().getPropertyNames();
     }
 
@@ -97,12 +107,18 @@ public final class Configuration {
         return getOptionalValue(NS_KEYCLOAK_PREFIX.concat(propertyName));
     }
 
-    public static Optional<Boolean> getOptionalBooleanValue(String name) {
-        return getOptionalValue(name).map(Boolean::parseBoolean);
+    public static Optional<Boolean> getOptionalBooleanKcValue(String propertyName) {
+        Optional<String> value = getOptionalValue(NS_KEYCLOAK_PREFIX.concat(propertyName));
+
+        if (value.isPresent()) {
+            return value.map(Boolean::parseBoolean);
+        }
+
+        return Optional.empty();
     }
 
-    public static Optional<Boolean> getOptionalKcBooleanValue(String name) {
-        return getOptionalBooleanValue(NS_KEYCLOAK_PREFIX.concat(name));
+    public static Optional<Boolean> getOptionalBooleanValue(String name) {
+        return getOptionalValue(name).map(Boolean::parseBoolean);
     }
 
     public static String getMappedPropertyName(String key) {
@@ -187,5 +203,24 @@ public final class Configuration {
         }
 
         return value;
+    }
+
+    public static boolean isOptimized() {
+        return Configuration.getRawPersistedProperty(KC_OPTIMIZED).isPresent();
+    }
+
+    public static void markAsOptimized(Properties properties) {
+        properties.put(Configuration.KC_OPTIMIZED, Boolean.TRUE.toString());
+    }
+
+    public static ConfigValue getCurrentBuiltTimeProperty(String name) {
+        PersistedConfigSource persistedConfigSource = PersistedConfigSource.getInstance();
+
+        try {
+            persistedConfigSource.enable(false);
+            return getConfigValue(name);
+        } finally {
+            persistedConfigSource.enable(true);
+        }
     }
 }

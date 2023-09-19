@@ -70,8 +70,8 @@ import org.keycloak.provider.ConfiguredProvider;
 import org.keycloak.representations.account.ClientRepresentation;
 import org.keycloak.representations.account.ConsentRepresentation;
 import org.keycloak.representations.account.ConsentScopeRepresentation;
-import org.keycloak.representations.account.UserProfileAttributeMetadata;
-import org.keycloak.representations.account.UserProfileMetadata;
+import org.keycloak.representations.idm.UserProfileAttributeMetadata;
+import org.keycloak.representations.idm.UserProfileMetadata;
 import org.keycloak.representations.account.UserRepresentation;
 import org.keycloak.representations.idm.ErrorRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
@@ -282,6 +282,12 @@ public class AccountRestService {
         checkAccountApiEnabled();
         auth.requireOneOf(AccountRoles.MANAGE_ACCOUNT, AccountRoles.VIEW_PROFILE);
         return new ResourcesService(session, user, auth, request);
+    }
+
+    @Path("supportedLocales")
+    @GET
+    public List<String> supportedLocales() {
+        return auth.getRealm().getSupportedLocalesStream().collect(Collectors.toList());
     }
 
     private ClientRepresentation modelToRepresentation(ClientModel model, List<String> inUseClients, List<String> offlineClients, Map<String, UserConsentModel> consents) {

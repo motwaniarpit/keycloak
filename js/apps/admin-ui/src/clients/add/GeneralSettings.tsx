@@ -8,14 +8,14 @@ import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { HelpItem } from "ui-shared";
 import { useLoginProviders } from "../../context/server-info/ServerInfoProvider";
 import { ClientDescription } from "../ClientDescription";
 import { getProtocolName } from "../utils";
 
 export const GeneralSettings = () => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const {
     control,
     formState: { errors },
@@ -31,10 +31,7 @@ export const GeneralSettings = () => {
         fieldId="kc-type"
         validated={errors.protocol ? "error" : "default"}
         labelIcon={
-          <HelpItem
-            helpText={t("clients-help:clientType")}
-            fieldLabelId="clients:clientType"
-          />
+          <HelpItem helpText={t("clientTypeHelp")} fieldLabelId="clientType" />
         }
       >
         <Controller

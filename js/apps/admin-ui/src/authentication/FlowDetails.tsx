@@ -1,6 +1,7 @@
-import type AuthenticationExecutionInfoRepresentation from "@keycloak/keycloak-admin-client/lib/defs/authenticationExecutionInfoRepresentation";
-import type AuthenticationFlowRepresentation from "@keycloak/keycloak-admin-client/lib/defs/authenticationFlowRepresentation";
+import AuthenticationExecutionInfoRepresentation from "@keycloak/keycloak-admin-client/lib/defs/authenticationExecutionInfoRepresentation";
+import AuthenticationFlowRepresentation from "@keycloak/keycloak-admin-client/lib/defs/authenticationFlowRepresentation";
 import type { AuthenticationProviderRepresentation } from "@keycloak/keycloak-admin-client/lib/defs/authenticatorConfigRepresentation";
+import AuthenticatorConfigRepresentation from "@keycloak/keycloak-admin-client/lib/defs/authenticatorConfigRepresentation";
 import {
   AlertVariant,
   Button,
@@ -15,11 +16,7 @@ import {
   ToolbarContent,
   ToolbarItem,
 } from "@patternfly/react-core";
-import {
-  CheckCircleIcon,
-  DomainIcon,
-  TableIcon,
-} from "@patternfly/react-icons";
+import { DomainIcon, TableIcon } from "@patternfly/react-icons";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
@@ -28,10 +25,11 @@ import { adminClient } from "../admin-client";
 import { useAlerts } from "../components/alert/Alerts";
 import { useConfirmDialog } from "../components/confirm-dialog/ConfirmDialog";
 import { ViewHeader } from "../components/view-header/ViewHeader";
-import { useFetch } from "../utils/useFetch";
 import { useRealm } from "../context/realm-context/RealmContext";
+import { useFetch } from "../utils/useFetch";
 import useToggle from "../utils/useToggle";
 import { BindFlowDialog } from "./BindFlowDialog";
+import { BuildInLabel } from "./BuildInLabel";
 import { DuplicateFlowModal } from "./DuplicateFlowModal";
 import { EditFlowModal } from "./EditFlowModal";
 import { EmptyExecutionState } from "./EmptyExecutionState";
@@ -50,11 +48,11 @@ import { toAuthentication } from "./routes/Authentication";
 import type { FlowParams } from "./routes/Flow";
 
 export const providerConditionFilter = (
-  value: AuthenticationProviderRepresentation
+  value: AuthenticationProviderRepresentation,
 ) => value.displayName?.startsWith("Condition ");
 
 export default function FlowDetails() {
-  const { t } = useTranslation("authentication");
+  const { t } = useTranslation();
   const { realm } = useRealm();
   const { addAlert, addError } = useAlerts();
   const { id, usedBy, builtIn } = useParams<FlowParams>();
@@ -83,7 +81,7 @@ export default function FlowDetails() {
       const flows = await adminClient.authenticationManagement.getFlows();
       const flow = flows.find((f) => f.id === id);
       if (!flow) {
-        throw new Error(t("common:notFound"));
+        throw new Error(t("notFound"));
       }
 
       const executions =
@@ -96,22 +94,39 @@ export default function FlowDetails() {
       setFlow(flow);
       setExecutionList(new ExecutionList(executions));
     },
-    [key]
+    [key],
   );
 
   const executeChange = async (
     ex: AuthenticationFlowRepresentation,
-    change: LevelChange | IndexChange
+    change: LevelChange | IndexChange,
   ) => {
     try {
       let id = ex.id!;
       if ("parent" in change) {
+        let config: AuthenticatorConfigRepresentation = {};
+        if ("authenticationConfig" in ex) {
+          config = await adminClient.authenticationManagement.getConfig({
+            id: ex.authenticationConfig as string,
+          });
+        }
+
         await adminClient.authenticationManagement.delExecution({ id });
         const result =
           await adminClient.authenticationManagement.addExecutionToFlow({
             flow: change.parent?.displayName! || flow?.alias!,
             provider: ex.providerId!,
           });
+
+        if (config.id) {
+          const newConfig = {
+            id: result.id,
+            alias: config.alias,
+            config: config.config,
+          };
+          await adminClient.authenticationManagement.createConfig(newConfig);
+        }
+
         id = result.id!;
       }
       const times = change.newIndex - change.oldIndex;
@@ -129,7 +144,7 @@ export default function FlowDetails() {
       refresh();
       addAlert(t("updateFlowSuccess"), AlertVariant.success);
     } catch (error: any) {
-      addError("authentication:updateFlowError", error);
+      addError("updateFlowError", error);
     }
   };
 
@@ -139,18 +154,18 @@ export default function FlowDetails() {
     try {
       await adminClient.authenticationManagement.updateExecution(
         { flow: flow?.alias! },
-        ex
+        ex,
       );
       refresh();
       addAlert(t("updateFlowSuccess"), AlertVariant.success);
     } catch (error: any) {
-      addError("authentication:updateFlowError", error);
+      addError("updateFlowError", error);
     }
   };
 
   const addExecution = async (
     name: string,
-    type: AuthenticationProviderRepresentation
+    type: AuthenticationProviderRepresentation,
   ) => {
     try {
       await adminClient.authenticationManagement.addExecutionToFlow({
@@ -160,13 +175,13 @@ export default function FlowDetails() {
       refresh();
       addAlert(t("updateFlowSuccess"), AlertVariant.success);
     } catch (error) {
-      addError("authentication:updateFlowError", error);
+      addError("updateFlowError", error);
     }
   };
 
   const addFlow = async (
     flow: string,
-    { name, description = "", type, provider }: Flow
+    { name, description = "", type, provider }: Flow,
   ) => {
     try {
       await adminClient.authenticationManagement.addFlowToFlow({
@@ -179,19 +194,19 @@ export default function FlowDetails() {
       refresh();
       addAlert(t("updateFlowSuccess"), AlertVariant.success);
     } catch (error) {
-      addError("authentication:updateFlowError", error);
+      addError("updateFlowError", error);
     }
   };
 
   const [toggleDeleteDialog, DeleteConfirm] = useConfirmDialog({
-    titleKey: "authentication:deleteConfirmExecution",
+    titleKey: "deleteConfirmExecution",
     children: (
-      <Trans i18nKey="authentication:deleteConfirmExecutionMessage">
+      <Trans i18nKey="deleteConfirmExecutionMessage">
         {" "}
         <strong>{{ name: selectedExecution?.displayName }}</strong>.
       </Trans>
     ),
-    continueButtonLabel: "common:delete",
+    continueButtonLabel: "delete",
     continueButtonVariant: ButtonVariant.danger,
     onConfirm: async () => {
       try {
@@ -201,20 +216,20 @@ export default function FlowDetails() {
         addAlert(t("deleteExecutionSuccess"), AlertVariant.success);
         refresh();
       } catch (error) {
-        addError("authentication:deleteExecutionError", error);
+        addError("deleteExecutionError", error);
       }
     },
   });
 
   const [toggleDeleteFlow, DeleteFlowConfirm] = useConfirmDialog({
-    titleKey: "authentication:deleteConfirmFlow",
+    titleKey: "deleteConfirmFlow",
     children: (
-      <Trans i18nKey="authentication:deleteConfirmFlowMessage">
+      <Trans i18nKey="deleteConfirmFlowMessage">
         {" "}
         <strong>{{ flow: flow?.alias || "" }}</strong>.
       </Trans>
     ),
-    continueButtonLabel: "common:delete",
+    continueButtonLabel: "delete",
     continueButtonVariant: ButtonVariant.danger,
     onConfirm: async () => {
       try {
@@ -224,7 +239,7 @@ export default function FlowDetails() {
         navigate(toAuthentication({ realm }));
         addAlert(t("deleteFlowSuccess"), AlertVariant.success);
       } catch (error) {
-        addError("authentication:deleteFlowError", error);
+        addError("deleteFlowError", error);
       }
     },
   });
@@ -260,7 +275,7 @@ export default function FlowDetails() {
             key="delete"
             onClick={() => toggleDeleteFlow()}
           >
-            {t("common:delete")}
+            {t("delete")}
           </DropdownItem>,
         ]
       : []),
@@ -305,14 +320,7 @@ export default function FlowDetails() {
           { text: <Label>{t(`used.${usedBy}`)}</Label> },
           builtIn
             ? {
-                text: (
-                  <Label
-                    className="keycloak_authentication-section__usedby_label"
-                    icon={<CheckCircleIcon />}
-                  >
-                    {t("buildIn")}
-                  </Label>
-                ),
+                text: <BuildInLabel />,
                 id: "builtIn",
               }
             : {},
@@ -369,19 +377,17 @@ export default function FlowDetails() {
                 onDragFinish={(order) => {
                   const withoutHeaderId = order.slice(1);
                   setLiveText(
-                    t("common:onDragFinish", { list: dragged?.displayName })
+                    t("onDragFinish", { list: dragged?.displayName }),
                   );
                   const change = executionList.getChange(
                     dragged!,
-                    withoutHeaderId
+                    withoutHeaderId,
                   );
                   executeChange(dragged!, change);
                 }}
                 onDragStart={(id) => {
                   const item = executionList.findExecution(id)!;
-                  setLiveText(
-                    t("common:onDragStart", { item: item.displayName })
-                  );
+                  setLiveText(t("onDragStart", { item: item.displayName }));
                   setDragged(item);
                   if (!item.isCollapsed) {
                     item.isCollapsed = true;
@@ -389,11 +395,9 @@ export default function FlowDetails() {
                   }
                 }}
                 onDragMove={() =>
-                  setLiveText(
-                    t("common:onDragMove", { item: dragged?.displayName })
-                  )
+                  setLiveText(t("onDragMove", { item: dragged?.displayName }))
                 }
-                onDragCancel={() => setLiveText(t("common:onDragCancel"))}
+                onDragCancel={() => setLiveText(t("onDragCancel"))}
                 itemOrder={[
                   "header",
                   ...executionList.order().map((ex) => ex.id!),

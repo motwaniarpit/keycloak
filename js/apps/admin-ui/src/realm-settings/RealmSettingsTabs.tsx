@@ -64,7 +64,7 @@ const RealmSettingsHeader = ({
   realmName,
   refresh,
 }: RealmSettingsHeaderProps) => {
-  const { t } = useTranslation("realm-settings");
+  const { t } = useTranslation();
   const { refresh: refreshRealms } = useRealms();
   const { addAlert, addError } = useAlerts();
   const navigate = useNavigate();
@@ -73,8 +73,8 @@ const RealmSettingsHeader = ({
 
   const [toggleDisableDialog, DisableConfirm] = useConfirmDialog({
     titleKey: "realm-settings:disableConfirmTitle",
-    messageKey: "realm-settings:disableConfirm",
-    continueButtonLabel: "common:disable",
+    messageKey: "disableConfirmRealm",
+    continueButtonLabel: "disable",
     onConfirm: () => {
       onChange(!value);
       save();
@@ -83,18 +83,18 @@ const RealmSettingsHeader = ({
 
   const [toggleDeleteDialog, DeleteConfirm] = useConfirmDialog({
     titleKey: "realm-settings:deleteConfirmTitle",
-    messageKey: "realm-settings:deleteConfirm",
-    continueButtonLabel: "common:delete",
+    messageKey: "deleteConfirmRealmSetting",
+    continueButtonLabel: "delete",
     continueButtonVariant: ButtonVariant.danger,
     onConfirm: async () => {
       try {
         await adminClient.realms.del({ realm: realmName });
-        addAlert(t("deletedSuccess"), AlertVariant.success);
+        addAlert(t("deletedSuccessRealmSetting"), AlertVariant.success);
         await refreshRealms();
         navigate(toDashboard({ realm: environment.masterRealm }));
         refresh();
       } catch (error) {
-        addError("realm-settings:deleteError", error);
+        addError("deleteErrorRealmSetting", error);
       }
     },
   });
@@ -135,7 +135,7 @@ const RealmSettingsHeader = ({
           </DropdownItem>,
           <DropdownSeparator key="separator" />,
           <DropdownItem key="delete" onClick={toggleDeleteDialog}>
-            {t("common:delete")}
+            {t("delete")}
           </DropdownItem>,
         ]}
         isEnabled={value}
@@ -161,7 +161,7 @@ export const RealmSettingsTabs = ({
   realm,
   refresh,
 }: RealmSettingsTabsProps) => {
-  const { t } = useTranslation("realm-settings");
+  const { t } = useTranslation();
   const { addAlert, addError } = useAlerts();
   const { realm: realmName } = useRealm();
   const { refresh: refreshRealms } = useRealms();
@@ -193,23 +193,26 @@ export const RealmSettingsTabs = ({
         Object.fromEntries(
           (r.attributes["acr.loa.map"] as KeyValueType[])
             .filter(({ key }) => key !== "")
-            .map(({ key, value }) => [key, value])
-        )
+            .map(({ key, value }) => [key, value]),
+        ),
       );
     }
 
     try {
-      await adminClient.realms.update(
-        { realm: realmName },
-        {
-          ...realm,
-          ...r,
-          id: r.realm,
-        }
-      );
-      addAlert(t("saveSuccess"), AlertVariant.success);
+      const savedRealm: RealmRepresentation = {
+        ...realm,
+        ...r,
+        id: r.realm,
+      };
+
+      // For the default value, null is expected instead of an empty string.
+      if (savedRealm.smtpServer?.port === "") {
+        savedRealm.smtpServer = { ...savedRealm.smtpServer, port: null };
+      }
+      await adminClient.realms.update({ realm: realmName }, savedRealm);
+      addAlert(t("realmSaveSuccess"), AlertVariant.success);
     } catch (error) {
-      addError("realm-settings:saveError", error);
+      addError("realmSaveError", error);
     }
 
     const isRealmRenamed = realmName !== (r.realm || realm.realm);
@@ -242,7 +245,7 @@ export const RealmSettingsTabs = ({
       toClientPolicies({
         realm: realmName,
         tab,
-      })
+      }),
     );
 
   const clientPoliciesProfilesTab = useClientPoliciesTab("profiles");
@@ -268,6 +271,7 @@ export const RealmSettingsTabs = ({
         <RoutableTabs
           isBox
           mountOnEnter
+          aria-label="realm-settings-tabs"
           defaultLocation={toRealmSettings({
             realm: realmName,
             tab: "general",
@@ -292,7 +296,7 @@ export const RealmSettingsTabs = ({
             data-testid="rs-email-tab"
             {...emailTab}
           >
-            <RealmSettingsEmailTab realm={realm} />
+            <RealmSettingsEmailTab realm={realm} save={save} />
           </Tab>
           <Tab
             title={<TabTitleText>{t("themes")}</TabTitleText>}
@@ -373,7 +377,7 @@ export const RealmSettingsTabs = ({
                   tooltip={
                     <Tooltip
                       content={t(
-                        "realm-settings:clientPoliciesProfilesHelpText"
+                        "realm-settings:clientPoliciesProfilesHelpText",
                       )}
                     />
                   }
@@ -390,7 +394,7 @@ export const RealmSettingsTabs = ({
                   tooltip={
                     <Tooltip
                       content={t(
-                        "realm-settings:clientPoliciesPoliciesHelpText"
+                        "realm-settings:clientPoliciesPoliciesHelpText",
                       )}
                     />
                   }

@@ -17,7 +17,7 @@ import { HelpItem } from "ui-shared";
 
 import { adminClient } from "../../admin-client";
 import { useAlerts } from "../../components/alert/Alerts";
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { KeycloakTextInput } from "../../components/keycloak-text-input/KeycloakTextInput";
 import { PasswordInput } from "../../components/password-input/PasswordInput";
 import { WizardSectionHeader } from "../../components/wizard-section-header/WizardSectionHeader";
@@ -59,8 +59,7 @@ export const LdapSettingsConnection = ({
   showSectionHeading = false,
   showSectionDescription = false,
 }: LdapSettingsConnectionProps) => {
-  const { t } = useTranslation("user-federation");
-  const { t: helpText } = useTranslation("user-federation-help");
+  const { t } = useTranslation();
   const { realm } = useRealm();
   const { addAlert, addError } = useAlerts();
   const edit = !!id;
@@ -70,7 +69,7 @@ export const LdapSettingsConnection = ({
       const settings = convertFormToSettings(form);
       await adminClient.realms.testLDAPConnection(
         { realm },
-        { ...settings, action: testType, componentId: id }
+        { ...settings, action: testType, componentId: id },
       );
       addAlert(t("testSuccess"), AlertVariant.success);
     } catch (error) {
@@ -94,9 +93,7 @@ export const LdapSettingsConnection = ({
       {showSectionHeading && (
         <WizardSectionHeader
           title={t("connectionAndAuthenticationSettings")}
-          description={helpText(
-            "ldapConnectionAndAuthorizationSettingsDescription"
-          )}
+          description={t("ldapConnectionAndAuthorizationSettingsDescription")}
           showDescription={showSectionDescription}
         />
       )}
@@ -106,7 +103,7 @@ export const LdapSettingsConnection = ({
           labelIcon={
             <HelpItem
               helpText={t(
-                "user-federation-help:consoleDisplayConnectionUrlHelp"
+                "user-federation-help:consoleDisplayConnectionUrlHelp",
               )}
               fieldLabelId="user-federation:connectionURL"
             />
@@ -162,8 +159,8 @@ export const LdapSettingsConnection = ({
                 isDisabled={false}
                 onChange={(value) => field.onChange([`${value}`])}
                 isChecked={field.value[0] === "true"}
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 aria-label={t("enableStartTls")}
               />
             )}
@@ -183,7 +180,7 @@ export const LdapSettingsConnection = ({
           <Controller
             name="config.useTruststoreSpi[0]"
             control={form.control}
-            defaultValue="ldapsOnly"
+            defaultValue="always"
             render={({ field }) => (
               <Select
                 toggleId="kc-use-truststore-spi"
@@ -198,7 +195,6 @@ export const LdapSettingsConnection = ({
                 selections={field.value}
               >
                 <SelectOption value="always">{t("always")}</SelectOption>
-                <SelectOption value="ldapsOnly">{t("onlyLdaps")}</SelectOption>
                 <SelectOption value="never">{t("never")}</SelectOption>
               </Select>
             )}
@@ -226,8 +222,8 @@ export const LdapSettingsConnection = ({
                 isDisabled={false}
                 onChange={(value) => field.onChange([`${value}`])}
                 isChecked={field.value[0] === "true"}
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 aria-label={t("connectionPooling")}
               />
             )}
@@ -258,7 +254,7 @@ export const LdapSettingsConnection = ({
             data-testid="test-connection-button"
             onClick={() => testLdap("testConnection")}
           >
-            {t("common:testConnection")}
+            {t("testConnection")}
           </Button>
         </FormGroup>
         <FormGroup

@@ -5,17 +5,13 @@ import { HelpItem } from "ui-shared";
 
 import { adminClient } from "../../admin-client";
 import { JsonFileUpload } from "../../components/json-file-upload/JsonFileUpload";
-import { useRealm } from "../../context/realm-context/RealmContext";
-import { addTrailingSlash } from "../../util";
-import { getAuthorizationHeaders } from "../../utils/getAuthorizationHeaders";
 import { DiscoveryEndpointField } from "../component/DiscoveryEndpointField";
 import { DiscoverySettings } from "./DiscoverySettings";
 
 export const OpenIdConnectSettings = () => {
-  const { t } = useTranslation("identity-providers");
+  const { t } = useTranslation();
   const id = "oidc";
 
-  const { realm } = useRealm();
   const {
     setValue,
     setError,
@@ -38,25 +34,9 @@ export const OpenIdConnectSettings = () => {
     formData.append("file", new Blob([JSON.stringify(obj)]));
 
     try {
-      const response = await fetch(
-        `${addTrailingSlash(
-          adminClient.baseUrl
-        )}admin/realms/${realm}/identity-provider/import-config`,
-        {
-          method: "POST",
-          body: formData,
-          headers: getAuthorizationHeaders(await adminClient.getAccessToken()),
-        }
-      );
-      if (response.ok) {
-        const result = await response.json();
-        setupForm(result);
-      } else {
-        setError("discoveryError", {
-          type: "manual",
-          message: response.statusText,
-        });
-      }
+      const result =
+        await adminClient.identityProviders.importFromUrl(formData);
+      setupForm(result);
     } catch (error) {
       setError("discoveryError", {
         type: "manual",
@@ -67,7 +47,7 @@ export const OpenIdConnectSettings = () => {
 
   return (
     <>
-      <Title headingLevel="h4" size="xl" className="kc-form-panel__title">
+      <Title headingLevel="h2" size="xl" className="kc-form-panel__title">
         {t("oidcSettings")}
       </Title>
 
@@ -79,7 +59,7 @@ export const OpenIdConnectSettings = () => {
             fieldId="kc-import-config"
             labelIcon={
               <HelpItem
-                helpText={t("identity-providers-help:importConfig")}
+                helpText={t("importConfigHelp")}
                 fieldLabelId="identity-providers:importConfig"
               />
             }

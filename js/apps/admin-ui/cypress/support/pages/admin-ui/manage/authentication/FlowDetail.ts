@@ -26,7 +26,7 @@ export default class FlowDetails {
       const executionId = rowDetails.children().attr("data-id");
       cy.intercept(
         "POST",
-        `/admin/realms/test*/authentication/executions/${executionId}/lower-priority`
+        `/admin/realms/test*/authentication/executions/${executionId}/lower-priority`,
       ).as("priority");
       callback();
       cy.wait("@priority");
@@ -68,7 +68,6 @@ export default class FlowDetails {
   addCondition(subFlowName: string, executionTestId: string) {
     this.clickEditDropdownForFlow(subFlowName, "Add condition");
 
-    cy.get(".pf-c-pagination").should("not.exist");
     cy.findByTestId(executionTestId).click();
     cy.findByTestId("modal-add").click();
 
@@ -90,7 +89,7 @@ export default class FlowDetails {
 
   private fillSubFlowModal(subFlowName: string, name: string) {
     cy.get(".pf-c-modal-box__title-text").contains(
-      "Add step to " + subFlowName
+      "Add step to " + subFlowName,
     );
     cy.findByTestId("name").type(name);
     cy.findByTestId("modal-add").click();
@@ -99,7 +98,7 @@ export default class FlowDetails {
   fillCreateForm(
     name: string,
     description: string,
-    type: "Basic flow" | "Client flow"
+    type: "Basic flow" | "Client flow",
   ) {
     cy.findByTestId("name").type(name);
     cy.findByTestId("description").type(description);

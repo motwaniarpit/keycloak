@@ -9,7 +9,7 @@ import { useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { HelpItem } from "ui-shared";
 import { KeycloakTextInput } from "../../components/keycloak-text-input/KeycloakTextInput";
 import { WizardSectionHeader } from "../../components/wizard-section-header/WizardSectionHeader";
@@ -25,8 +25,7 @@ export const LdapSettingsSearching = ({
   showSectionHeading = false,
   showSectionDescription = false,
 }: LdapSettingsSearchingProps) => {
-  const { t } = useTranslation("user-federation");
-  const { t: helpText } = useTranslation("user-federation-help");
+  const { t } = useTranslation();
 
   const [isSearchScopeDropdownOpen, setIsSearchScopeDropdownOpen] =
     useState(false);
@@ -37,7 +36,7 @@ export const LdapSettingsSearching = ({
       {showSectionHeading && (
         <WizardSectionHeader
           title={t("ldapSearchingAndUpdatingSettings")}
-          description={helpText("ldapSearchingAndUpdatingSettingsDescription")}
+          description={t("ldapSearchingAndUpdatingSettingsDescription")}
           showDescription={showSectionDescription}
         />
       )}
@@ -400,8 +399,8 @@ export const LdapSettingsSearching = ({
                 isDisabled={false}
                 onChange={(value) => field.onChange([`${value}`])}
                 isChecked={field.value[0] === "true"}
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 aria-label={t("pagination")}
               />
             )}

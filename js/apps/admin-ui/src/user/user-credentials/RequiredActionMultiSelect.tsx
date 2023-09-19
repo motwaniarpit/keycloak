@@ -24,7 +24,7 @@ export const RequiredActionMultiSelect = ({
   label,
   help,
 }: RequiredActionMultiSelectProps) => {
-  const { t } = useTranslation("users");
+  const { t } = useTranslation();
   const { control } = useFormContext();
   const [open, setOpen] = useState(false);
   const [requiredActions, setRequiredActions] = useState<
@@ -39,13 +39,13 @@ export const RequiredActionMultiSelect = ({
       });
       setRequiredActions(enabledUserActions);
     },
-    []
+    [],
   );
 
   return (
     <FormGroup
       label={t(label)}
-      labelIcon={<HelpItem helpText={t(help)} fieldLabelId="resetActions" />}
+      labelIcon={<HelpItem helpText={t(help)} fieldLabelId="resetAction" />}
       fieldId="actions"
     >
       <Controller
@@ -69,14 +69,14 @@ export const RequiredActionMultiSelect = ({
               field.onChange(
                 field.value.find((o: string) => o === selectedValue)
                   ? field.value.filter((item: string) => item !== selectedValue)
-                  : [...field.value, selectedValue]
+                  : [...field.value, selectedValue],
               )
             }
             onClear={(event) => {
               event.stopPropagation();
               field.onChange([]);
             }}
-            typeAheadAriaLabel={t("resetActions")}
+            typeAheadAriaLabel={t("resetAction")}
           >
             {requiredActions.map(({ alias, name }) => (
               <SelectOption

@@ -19,17 +19,17 @@ import { HelpItem } from "ui-shared";
 
 import { adminClient } from "../admin-client";
 import { useAlerts } from "../components/alert/Alerts";
-import { FormAccess } from "../components/form-access/FormAccess";
+import { FormAccess } from "../components/form/FormAccess";
 import { GroupPickerDialog } from "../components/group/GroupPickerDialog";
 import { KeycloakTextInput } from "../components/keycloak-text-input/KeycloakTextInput";
 import { useAccess } from "../context/access/Access";
 import { useRealm } from "../context/realm-context/RealmContext";
 import { emailRegexPattern } from "../util";
-import { useFetch } from "../utils/useFetch";
 import useFormatDate from "../utils/useFormatDate";
 import useIsFeatureEnabled, { Feature } from "../utils/useIsFeatureEnabled";
 import { FederatedUserLink } from "./FederatedUserLink";
 import { UserProfileFields } from "./UserProfileFields";
+import { UserFormFields } from "./form-state";
 import { RequiredActionMultiSelect } from "./user-credentials/RequiredActionMultiSelect";
 
 export type BruteForced = {
@@ -40,21 +40,22 @@ export type BruteForced = {
 export type UserFormProps = {
   user?: UserRepresentation;
   bruteForce?: BruteForced;
-  save: (user: UserRepresentation) => void;
+  realm?: RealmRepresentation;
+  save: (user: UserFormFields) => void;
   onGroupsUpdate?: (groups: GroupRepresentation[]) => void;
 };
 
 const EmailVerified = () => {
-  const { t } = useTranslation("users");
-  const { control } = useFormContext();
+  const { t } = useTranslation();
+  const { control } = useFormContext<UserFormFields>();
   return (
     <FormGroup
       label={t("emailVerified")}
       fieldId="kc-email-verified"
-      helperTextInvalid={t("common:required")}
+      helperTextInvalid={t("required")}
       labelIcon={
         <HelpItem
-          helpText={t("users-help:emailVerified")}
+          helpText={t("emailVerifiedHelp")}
           fieldLabelId="users:emailVerified"
         />
       }
@@ -69,8 +70,8 @@ const EmailVerified = () => {
             id="kc-user-email-verified"
             onChange={(value) => field.onChange(value)}
             isChecked={field.value}
-            label={t("common:yes")}
-            labelOff={t("common:no")}
+            label={t("yes")}
+            labelOff={t("no")}
           />
         )}
       />
@@ -80,6 +81,7 @@ const EmailVerified = () => {
 
 export const UserForm = ({
   user,
+  realm,
   bruteForce: { isBruteForceProtected, isLocked } = {
     isBruteForceProtected: false,
     isLocked: false,
@@ -87,7 +89,7 @@ export const UserForm = ({
   save,
   onGroupsUpdate,
 }: UserFormProps) => {
-  const { t } = useTranslation("users");
+  const { t } = useTranslation();
   const { realm: realmName } = useRealm();
   const formatDate = useFormatDate();
   const isFeatureEnabled = useIsFeatureEnabled();
@@ -96,6 +98,7 @@ export const UserForm = ({
   const { addAlert, addError } = useAlerts();
   const { hasAccess } = useAccess();
   const isManager = hasAccess("manage-users");
+  const canViewFederationLink = hasAccess("view-realm");
 
   const {
     handleSubmit,
@@ -104,25 +107,13 @@ export const UserForm = ({
     control,
     reset,
     formState: { errors },
-  } = useFormContext();
+  } = useFormContext<UserFormFields>();
   const watchUsernameInput = watch("username");
   const [selectedGroups, setSelectedGroups] = useState<GroupRepresentation[]>(
-    []
+    [],
   );
   const [open, setOpen] = useState(false);
   const [locked, setLocked] = useState(isLocked);
-  const [realm, setRealm] = useState<RealmRepresentation>();
-
-  useFetch(
-    () => adminClient.realms.findOne({ realm: realmName }),
-    (realm) => {
-      if (!realm) {
-        throw new Error(t("common:notFound"));
-      }
-      setRealm(realm);
-    },
-    []
-  );
 
   const unLockUser = async () => {
     try {
@@ -194,7 +185,7 @@ export const UserForm = ({
       {isUserProfileEnabled && <EmailVerified />}
       {user?.id && (
         <>
-          <FormGroup label={t("common:id")} fieldId="kc-id" isRequired>
+          <FormGroup label={t("id")} fieldId="kc-id" isRequired>
             <KeycloakTextInput
               id={user.id}
               aria-label={t("userID")}
@@ -218,14 +209,14 @@ export const UserForm = ({
       <RequiredActionMultiSelect
         name="requiredActions"
         label="requiredUserActions"
-        help="users-help:requiredUserActions"
+        help="requiredUserActionsHelp"
       />
-      {(user?.federationLink || user?.origin) && (
+      {(user?.federationLink || user?.origin) && canViewFederationLink && (
         <FormGroup
           label={t("federationLink")}
           labelIcon={
             <HelpItem
-              helpText={t("users-help:federationLink")}
+              helpText={t("federationLinkHelp")}
               fieldLabelId="users:federationLink"
             />
           }
@@ -234,7 +225,7 @@ export const UserForm = ({
         </FormGroup>
       )}
       {isUserProfileEnabled ? (
-        <UserProfileFields />
+        <UserProfileFields config={user?.userProfileMetadata!} />
       ) : (
         <>
           {!realm?.registrationEmailAsUsername && (
@@ -243,7 +234,7 @@ export const UserForm = ({
               fieldId="kc-username"
               isRequired
               validated={errors.username ? "error" : "default"}
-              helperTextInvalid={t("common:required")}
+              helperTextInvalid={t("required")}
             >
               <KeycloakTextInput
                 id="kc-username"
@@ -276,7 +267,7 @@ export const UserForm = ({
             label={t("firstName")}
             fieldId="kc-firstName"
             validated={errors.firstName ? "error" : "default"}
-            helperTextInvalid={t("common:required")}
+            helperTextInvalid={t("required")}
           >
             <KeycloakTextInput
               data-testid="firstName-input"
@@ -304,7 +295,7 @@ export const UserForm = ({
           fieldId="temporaryLocked"
           labelIcon={
             <HelpItem
-              helpText={t("users-help:temporaryLocked")}
+              helpText={t("temporaryLockedHelp")}
               fieldLabelId="users:temporaryLocked"
             />
           }
@@ -318,17 +309,17 @@ export const UserForm = ({
             }}
             isChecked={locked}
             isDisabled={!locked}
-            label={t("common:on")}
-            labelOff={t("common:off")}
+            label={t("on")}
+            labelOff={t("off")}
           />
         </FormGroup>
       )}
       {!user?.id && (
         <FormGroup
-          label={t("common:groups")}
+          label={t("groups")}
           fieldId="kc-groups"
           validated={errors.requiredActions ? "error" : "default"}
-          helperTextInvalid={t("common:required")}
+          helperTextInvalid={t("required")}
           labelIcon={
             <HelpItem helpText={t("users-help:groups")} fieldLabelId="groups" />
           }
@@ -374,7 +365,7 @@ export const UserForm = ({
           variant="primary"
           type="submit"
         >
-          {user?.id ? t("common:save") : t("common:create")}
+          {user?.id ? t("save") : t("create")}
         </Button>
         <Button
           data-testid="cancel-create-user"
@@ -383,7 +374,7 @@ export const UserForm = ({
           }
           variant="link"
         >
-          {user?.id ? t("common:revert") : t("common:cancel")}
+          {user?.id ? t("revert") : t("cancel")}
         </Button>
       </ActionGroup>
     </FormAccess>

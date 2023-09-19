@@ -16,7 +16,7 @@ import { KeycloakDataTable } from "../../components/table-toolbar/KeycloakDataTa
 import useToggle from "../../utils/useToggle";
 import { AuthenticationType, REALM_FLOWS } from "../AuthenticationSection";
 
-import "./used-by.css";
+import style from "./used-by.module.css";
 
 type UsedByProps = {
   authType: AuthenticationType;
@@ -25,8 +25,7 @@ type UsedByProps = {
 
 const Label = ({ label }: { label: string }) => (
   <>
-    <CheckCircleIcon className="keycloak_authentication-section__usedby" />{" "}
-    {label}
+    <CheckCircleIcon className={style.label} /> {label}
   </>
 );
 
@@ -37,12 +36,12 @@ type UsedByModalProps = {
 };
 
 const UsedByModal = ({ id, isSpecificClient, onClose }: UsedByModalProps) => {
-  const { t } = useTranslation("authentication");
+  const { t } = useTranslation();
 
   const loader = async (
     first?: number,
     max?: number,
-    search?: string
+    search?: string,
   ): Promise<{ name: string }[]> => {
     const result = await fetchUsedBy({
       id,
@@ -76,15 +75,15 @@ const UsedByModal = ({ id, isSpecificClient, onClose }: UsedByModalProps) => {
           key="cancel"
           onClick={onClose}
         >
-          {t("common:close")}
+          {t("close")}
         </Button>,
       ]}
     >
       <KeycloakDataTable
         loader={loader}
         isPaginated
-        ariaLabelKey="authentication:usedBy"
-        searchPlaceholderKey="common:search"
+        ariaLabelKey="usedBy"
+        searchPlaceholderKey="search"
         columns={[
           {
             name: "name",
@@ -96,11 +95,11 @@ const UsedByModal = ({ id, isSpecificClient, onClose }: UsedByModalProps) => {
 };
 
 export const UsedBy = ({ authType: { id, usedBy }, realm }: UsedByProps) => {
-  const { t } = useTranslation("authentication");
+  const { t } = useTranslation();
   const [open, toggle] = useToggle();
 
   const key = Object.entries(realm).find(
-    (e) => e[1] === usedBy?.values[0]
+    (e) => e[1] === usedBy?.values[0],
   )?.[0];
 
   return (
@@ -124,7 +123,7 @@ export const UsedBy = ({ authType: { id, usedBy }, realm }: UsedByProps) => {
                   "appliedBy" +
                     (usedBy.type === "SPECIFIC_CLIENTS"
                       ? "Clients"
-                      : "Providers")
+                      : "Providers"),
                 )}{" "}
                 {usedBy.values.map((used, index) => (
                   <>
@@ -135,19 +134,12 @@ export const UsedBy = ({ authType: { id, usedBy }, realm }: UsedByProps) => {
               </div>
             }
           >
-            <Button
-              variant="link"
-              className="keycloak__used-by__popover-button"
-            >
+            <Button variant="link" className={style.label}>
               <Label label={t(`used.${usedBy.type}`)} />
             </Button>
           </Popover>
         ) : (
-          <Button
-            variant="link"
-            className="keycloak__used-by__popover-button"
-            onClick={toggle}
-          >
+          <Button variant="link" className={style.label} onClick={toggle}>
             <Label label={t(`used.${usedBy.type}`)} />
           </Button>
         ))}

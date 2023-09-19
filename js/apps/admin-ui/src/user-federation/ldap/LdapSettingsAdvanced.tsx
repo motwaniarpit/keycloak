@@ -5,7 +5,7 @@ import { HelpItem } from "ui-shared";
 
 import { adminClient } from "../../admin-client";
 import { useAlerts } from "../../components/alert/Alerts";
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { WizardSectionHeader } from "../../components/wizard-section-header/WizardSectionHeader";
 import { useRealm } from "../../context/realm-context/RealmContext";
 import { convertFormToSettings } from "./LdapSettingsConnection";
@@ -25,8 +25,7 @@ export const LdapSettingsAdvanced = ({
   showSectionHeading = false,
   showSectionDescription = false,
 }: LdapSettingsAdvancedProps) => {
-  const { t } = useTranslation("user-federation");
-  const { t: helpText } = useTranslation("user-federation-help");
+  const { t } = useTranslation();
 
   const { realm } = useRealm();
   const { addAlert, addError } = useAlerts();
@@ -37,11 +36,11 @@ export const LdapSettingsAdvanced = ({
       const settings = convertFormToSettings(form);
       const ldapOids = await adminClient.realms.ldapServerCapabilities(
         { realm },
-        { ...settings, componentId: id }
+        { ...settings, componentId: id },
       );
       addAlert(t("testSuccess"));
       const passwordModifyOid = ldapOids.filter(
-        (id: { oid: string }) => id.oid === PASSWORD_MODIFY_OID
+        (id: { oid: string }) => id.oid === PASSWORD_MODIFY_OID,
       );
       form.setValue("config.usePasswordModifyExtendedOp", [
         (passwordModifyOid.length > 0).toString(),
@@ -56,7 +55,7 @@ export const LdapSettingsAdvanced = ({
       {showSectionHeading && (
         <WizardSectionHeader
           title={t("advancedSettings")}
-          description={helpText("ldapAdvancedSettingsDescription")}
+          description={t("ldapAdvancedSettingsDescription")}
           showDescription={showSectionDescription}
         />
       )}
@@ -84,8 +83,8 @@ export const LdapSettingsAdvanced = ({
                 isDisabled={false}
                 onChange={(value) => field.onChange([`${value}`])}
                 isChecked={field.value[0] === "true"}
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 aria-label={t("enableLdapv3Password")}
               />
             )}
@@ -114,8 +113,8 @@ export const LdapSettingsAdvanced = ({
                 isDisabled={false}
                 onChange={(value) => field.onChange([`${value}`])}
                 isChecked={field.value[0] === "true"}
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 aria-label={t("validatePasswordPolicy")}
               />
             )}
@@ -144,8 +143,8 @@ export const LdapSettingsAdvanced = ({
                 isDisabled={false}
                 onChange={(value) => field.onChange([`${value}`])}
                 isChecked={field.value[0] === "true"}
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 aria-label={t("trustEmail")}
               />
             )}

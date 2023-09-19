@@ -407,7 +407,8 @@ public abstract class AbstractOAuth2IdentityProvider<C extends OAuth2IdentityPro
             String jws = new JWSBuilder().type(OAuth2Constants.JWT).jsonContent(generateToken()).sign(getSignatureContext());
             return tokenRequest
                     .param(OAuth2Constants.CLIENT_ASSERTION_TYPE, OAuth2Constants.CLIENT_ASSERTION_TYPE_JWT)
-                    .param(OAuth2Constants.CLIENT_ASSERTION, jws);
+                    .param(OAuth2Constants.CLIENT_ASSERTION, jws)
+                    .param(OAuth2Constants.CLIENT_ID, getConfig().getClientId());
         } else {
             try (VaultStringSecret vaultStringSecret = session.vault().getStringSecret(getConfig().getClientSecret())) {
                 if (getConfig().isBasicAuthentication()) {
@@ -518,6 +519,11 @@ public abstract class AbstractOAuth2IdentityProvider<C extends OAuth2IdentityPro
                 }
             } catch (WebApplicationException e) {
                 return e.getResponse();
+            } catch (IdentityBrokerException e) {
+                if (e.getMessageCode() != null) {
+                    return errorIdentityProviderLogin(e.getMessageCode());
+                }
+                logger.error("Failed to make identity provider oauth callback", e);
             } catch (Exception e) {
                 logger.error("Failed to make identity provider oauth callback", e);
             }

@@ -12,13 +12,13 @@ export type UserFederationLdapParams = {
 };
 
 const UserFederationLdapSettings = lazy(
-  () => import("../UserFederationLdapSettings")
+  () => import("../UserFederationLdapSettings"),
 );
 
 export const UserFederationLdapRoute: AppRouteObject = {
   path: "/:realm/user-federation/ldap/:id",
   element: <UserFederationLdapSettings />,
-  breadcrumb: (t) => t("common:settings"),
+  breadcrumb: (t) => t("settings"),
   handle: {
     access: "view-realm",
   },
@@ -30,7 +30,7 @@ export const UserFederationLdapWithTabRoute: AppRouteObject = {
 };
 
 export const toUserFederationLdap = (
-  params: UserFederationLdapParams
+  params: UserFederationLdapParams,
 ): Partial<Path> => {
   const path = params.tab
     ? UserFederationLdapWithTabRoute.path

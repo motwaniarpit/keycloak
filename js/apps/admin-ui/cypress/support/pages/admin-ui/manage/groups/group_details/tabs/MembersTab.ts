@@ -44,13 +44,13 @@ export default class MembersTab extends GroupDetailPage {
   }
 
   public leaveGroupSelectedUsers() {
-    this.clickToolbarAction("Leave group");
+    this.clickToolbarAction("Leave");
     return this;
   }
 
   public leaveGroupUserItem(username: string) {
     listingPage.clickRowDetails(username);
-    listingPage.clickDetailMenu("Leave group");
+    listingPage.clickDetailMenu("Leave");
     return this;
   }
 
@@ -61,14 +61,14 @@ export default class MembersTab extends GroupDetailPage {
 
   public assertNotificationUserAddedToTheGroup(amount: number) {
     masthead.checkNotificationMessage(
-      `${amount} user${amount > 1 ? "s" : ""} added to the group`
+      `${amount} user${amount > 1 ? "s" : ""} added to the group`,
     );
     return this;
   }
 
   public assertNotificationUserLeftTheGroup(amount: number) {
     masthead.checkNotificationMessage(
-      `${amount} user${amount > 1 ? "s" : ""} left the group`
+      `${amount} user${amount > 1 ? "s" : ""} left the group`,
     );
     return this;
   }

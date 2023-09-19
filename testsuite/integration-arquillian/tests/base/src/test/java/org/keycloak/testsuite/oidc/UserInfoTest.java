@@ -104,7 +104,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper.INCLUDE_IN_USERINFO;
 import static org.keycloak.testsuite.admin.AbstractAdminTest.loadJson;
 import static org.keycloak.testsuite.util.OAuthClient.AUTH_SERVER_ROOT;
@@ -199,6 +199,28 @@ public class UserInfoTest extends AbstractKeycloakTest {
 
             WebTarget userInfoTarget = UserInfoClientUtil.getUserInfoWebTarget(client);
             Response response = userInfoTarget.request()
+                    .post(Entity.form(form));
+
+            testSuccessfulUserInfoResponse(response);
+
+        } finally {
+            client.close();
+        }
+    }
+    
+    @Test
+    public void testSuccess_postMethod_charset_body() throws Exception {
+        Client client = AdminClientUtil.createResteasyClient();
+
+        try {
+            AccessTokenResponse accessTokenResponse = executeGrantAccessTokenRequest(client);
+
+            Form form = new Form();
+            form.param("access_token", accessTokenResponse.getToken());
+
+            WebTarget userInfoTarget = UserInfoClientUtil.getUserInfoWebTarget(client);
+            Response response = userInfoTarget.request()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_TYPE.withCharset("utf-8"))
                     .post(Entity.form(form));
 
             testSuccessfulUserInfoResponse(response);

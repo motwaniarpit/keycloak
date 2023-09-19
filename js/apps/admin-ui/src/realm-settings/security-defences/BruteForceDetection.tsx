@@ -10,7 +10,7 @@ import { useEffect } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { HelpItem } from "ui-shared";
 import { convertToFormValues } from "../../util";
 import { Time } from "./Time";
@@ -24,7 +24,7 @@ export const BruteForceDetection = ({
   realm,
   save,
 }: BruteForceDetectionProps) => {
-  const { t } = useTranslation("realm-settings");
+  const { t } = useTranslation();
   const form = useForm();
   const {
     setValue,
@@ -54,7 +54,7 @@ export const BruteForceDetection = ({
         onSubmit={handleSubmit(save)}
       >
         <FormGroup
-          label={t("common:enabled")}
+          label={t("enabled")}
           fieldId="bruteForceProtected"
           hasNoPaddingTop
         >
@@ -65,8 +65,8 @@ export const BruteForceDetection = ({
             render={({ field }) => (
               <Switch
                 id="bruteForceProtected"
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 isChecked={field.value}
                 onChange={field.onChange}
               />
@@ -79,7 +79,7 @@ export const BruteForceDetection = ({
               label={t("failureFactor")}
               labelIcon={
                 <HelpItem
-                  helpText={t("realm-settings-help:failureFactor")}
+                  helpText={t("failureFactorHelp")}
                   fieldLabelId="realm-settings:failureFactor"
                 />
               }
@@ -99,7 +99,7 @@ export const BruteForceDetection = ({
                     onMinus={() => field.onChange(field.value - 1)}
                     onChange={(event) =>
                       field.onChange(
-                        Number((event.target as HTMLInputElement).value)
+                        Number((event.target as HTMLInputElement).value),
                       )
                     }
                   />
@@ -118,8 +118,8 @@ export const BruteForceDetection = ({
                 render={({ field }) => (
                   <Switch
                     id="permanentLockout"
-                    label={t("common:on")}
-                    labelOff={t("common:off")}
+                    label={t("on")}
+                    labelOff={t("off")}
                     isChecked={field.value}
                     onChange={field.onChange}
                     aria-label={t("permanentLockout")}
@@ -141,7 +141,7 @@ export const BruteForceDetection = ({
               labelIcon={
                 <HelpItem
                   helpText={t(
-                    "realm-settings-help:quickLoginCheckMilliSeconds"
+                    "realm-settings-help:quickLoginCheckMilliSeconds",
                   )}
                   fieldLabelId="realm-settings:quickLoginCheckMilliSeconds"
                 />
@@ -161,7 +161,7 @@ export const BruteForceDetection = ({
                     onMinus={() => field.onChange(field.value - 1)}
                     onChange={(event) =>
                       field.onChange(
-                        Number((event.target as HTMLInputElement).value)
+                        Number((event.target as HTMLInputElement).value),
                       )
                     }
                   />
@@ -180,10 +180,10 @@ export const BruteForceDetection = ({
             data-testid="brute-force-tab-save"
             isDisabled={!isDirty}
           >
-            {t("common:save")}
+            {t("save")}
           </Button>
           <Button variant="link" onClick={setupForm}>
-            {t("common:revert")}
+            {t("revert")}
           </Button>
         </ActionGroup>
       </FormAccess>

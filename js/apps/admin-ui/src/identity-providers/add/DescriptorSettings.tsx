@@ -25,8 +25,8 @@ type DescriptorSettingsProps = {
 };
 
 const Fields = ({ readOnly }: DescriptorSettingsProps) => {
-  const { t } = useTranslation("identity-providers");
-  const { t: th } = useTranslation("identity-providers-help");
+  const { t } = useTranslation();
+  const { t: th } = useTranslation();
 
   const {
     register,
@@ -67,7 +67,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
         fieldId="kc-saml-service-provider-entity-id"
         labelIcon={
           <HelpItem
-            helpText={t("identity-providers-help:serviceProviderEntityId")}
+            helpText={t("serviceProviderEntityIdHelp")}
             fieldLabelId="identity-providers:serviceProviderEntityId"
           />
         }
@@ -83,7 +83,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
         fieldId="kc-identity-provider-entity-id"
         labelIcon={
           <HelpItem
-            helpText={t("identity-providers-help:identityProviderEntityId")}
+            helpText={t("identityProviderEntityIdHelp")}
             fieldLabelId="identity-providers:identityProviderEntityId"
           />
         }
@@ -109,7 +109,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
             ? ValidatedOptions.error
             : ValidatedOptions.default
         }
-        helperTextInvalid={t("common:required")}
+        helperTextInvalid={t("required")}
       >
         <KeycloakTextInput
           type="url"
@@ -139,7 +139,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
             ? ValidatedOptions.error
             : ValidatedOptions.default
         }
-        helperTextInvalid={t("common:required")}
+        helperTextInvalid={t("required")}
       >
         <KeycloakTextInput
           type="url"
@@ -163,7 +163,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
           />
         }
         fieldId="kc-nameIdPolicyFormat"
-        helperTextInvalid={t("common:required")}
+        helperTextInvalid={t("required")}
       >
         <Controller
           name="config.nameIDPolicyFormat"
@@ -242,7 +242,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
           />
         }
         fieldId="kc-principalType"
-        helperTextInvalid={t("common:required")}
+        helperTextInvalid={t("required")}
       >
         <Controller
           name="config.principalType"
@@ -505,7 +505,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
           />
         }
         fieldId="allowedClockSkew"
-        helperTextInvalid={t("common:required")}
+        helperTextInvalid={t("required")}
       >
         <Controller
           name="config.allowedClockSkew"
@@ -525,7 +525,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
                 onMinus={() => field.onChange(v - 1)}
                 onChange={(event) => {
                   const value = Number(
-                    (event.target as HTMLInputElement).value
+                    (event.target as HTMLInputElement).value,
                   );
                   field.onChange(value < 0 ? 0 : value);
                 }}
@@ -544,7 +544,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
           />
         }
         fieldId="attributeConsumingServiceIndex"
-        helperTextInvalid={t("common:required")}
+        helperTextInvalid={t("required")}
       >
         <Controller
           name="config.attributeConsumingServiceIndex"
@@ -564,7 +564,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
                 onMinus={() => field.onChange(v - 1)}
                 onChange={(event) => {
                   const value = Number(
-                    (event.target as HTMLInputElement).value
+                    (event.target as HTMLInputElement).value,
                   );
                   field.onChange(value < 0 ? 0 : value);
                 }}
@@ -583,7 +583,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
           />
         }
         fieldId="attributeConsumingServiceName"
-        helperTextInvalid={t("common:required")}
+        helperTextInvalid={t("required")}
       >
         <KeycloakTextInput
           id="attributeConsumingServiceName"
@@ -597,7 +597,7 @@ const Fields = ({ readOnly }: DescriptorSettingsProps) => {
 };
 
 export const DescriptorSettings = ({ readOnly }: DescriptorSettingsProps) => {
-  const { t } = useTranslation("identity-providers");
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
   return readOnly ? (

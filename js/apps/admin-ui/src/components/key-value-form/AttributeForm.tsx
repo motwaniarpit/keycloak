@@ -3,7 +3,7 @@ import { ActionGroup, Button } from "@patternfly/react-core";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { FormAccess } from "../form-access/FormAccess";
+import { FormAccess } from "../form/FormAccess";
 import type { KeyValueType } from "./key-value-convert";
 import { KeyValueInput } from "./KeyValueInput";
 
@@ -24,7 +24,7 @@ export const AttributesForm = ({
   save,
   fineGrainedAccess,
 }: AttributesFormProps) => {
-  const { t } = useTranslation("roles");
+  const { t } = useTranslation();
   const noSaveCancelButtons = !save && !reset;
   const {
     formState: { isDirty },
@@ -48,10 +48,10 @@ export const AttributesForm = ({
             type="submit"
             isDisabled={!isDirty}
           >
-            {t("common:save")}
+            {t("save")}
           </Button>
           <Button onClick={reset} variant="link" isDisabled={!isDirty}>
-            {t("common:revert")}
+            {t("revert")}
           </Button>
         </ActionGroup>
       )}

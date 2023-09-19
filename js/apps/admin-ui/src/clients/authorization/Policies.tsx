@@ -62,7 +62,7 @@ const DependentPoliciesRenderer = ({
 };
 
 export const AuthorizationPolicies = ({ clientId }: PoliciesProps) => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const { addAlert, addError } = useAlerts();
   const { realm } = useRealm();
   const navigate = useNavigate();
@@ -110,15 +110,15 @@ export const AuthorizationPolicies = ({ clientId }: PoliciesProps) => {
     },
     ([providers, ...policies]) => {
       setPolicyProviders(
-        providers.filter((p) => p.type !== "resource" && p.type !== "scope")
+        providers.filter((p) => p.type !== "resource" && p.type !== "scope"),
       );
       setPolicies(policies);
     },
-    [key, search, first, max]
+    [key, search, first, max],
   );
 
   const [toggleDeleteDialog, DeleteConfirm] = useConfirmDialog({
-    titleKey: "clients:deletePolicy",
+    titleKey: "deletePolicy",
     children: (
       <>
         {t("deletePolicyConfirm")}
@@ -128,6 +128,7 @@ export const AuthorizationPolicies = ({ clientId }: PoliciesProps) => {
               variant="warning"
               isInline
               isPlain
+              component="p"
               title={t("deletePolicyWarning")}
               className="pf-u-pt-lg"
             >
@@ -142,7 +143,7 @@ export const AuthorizationPolicies = ({ clientId }: PoliciesProps) => {
           )}
       </>
     ),
-    continueButtonLabel: "clients:confirm",
+    continueButtonLabel: "confirm",
     onConfirm: async () => {
       try {
         await adminClient.clients.delPolicy({
@@ -152,7 +153,7 @@ export const AuthorizationPolicies = ({ clientId }: PoliciesProps) => {
         addAlert(t("policyDeletedSuccess"), AlertVariant.success);
         refresh();
       } catch (error) {
-        addError("clients:policyDeletedError", error);
+        addError("policyDeletedError", error);
       }
     },
   });
@@ -173,7 +174,7 @@ export const AuthorizationPolicies = ({ clientId }: PoliciesProps) => {
               policyProviders={policyProviders}
               onSelect={(p) =>
                 navigate(
-                  toCreatePolicy({ id: clientId, realm, policyType: p.type! })
+                  toCreatePolicy({ id: clientId, realm, policyType: p.type! }),
                 )
               }
               toggleDialog={toggleDialog}
@@ -211,12 +212,12 @@ export const AuthorizationPolicies = ({ clientId }: PoliciesProps) => {
               <TableComposable aria-label={t("resources")} variant="compact">
                 <Thead>
                   <Tr>
-                    <Th />
-                    <Th>{t("common:name")}</Th>
-                    <Th>{t("common:type")}</Th>
+                    <Th aria-hidden="true" />
+                    <Th>{t("name")}</Th>
+                    <Th>{t("type")}</Th>
                     <Th>{t("dependentPermission")}</Th>
-                    <Th>{t("common:description")}</Th>
-                    <Th />
+                    <Th>{t("description")}</Th>
+                    <Th aria-hidden="true" />
                   </Tr>
                 </Thead>
                 {policies.map((policy, rowIndex) => (
@@ -230,7 +231,7 @@ export const AuthorizationPolicies = ({ clientId }: PoliciesProps) => {
                             const rows = policies.map((policy, index) =>
                               index === rowIndex
                                 ? { ...policy, isExpanded: !policy.isExpanded }
-                                : policy
+                                : policy,
                             );
                             setPolicies(rows);
                           },
@@ -257,7 +258,7 @@ export const AuthorizationPolicies = ({ clientId }: PoliciesProps) => {
                         actions={{
                           items: [
                             {
-                              title: t("common:delete"),
+                              title: t("delete"),
                               onClick: async () => {
                                 setSelectedPolicy(policy);
                                 toggleDeleteDialog();
@@ -307,8 +308,8 @@ export const AuthorizationPolicies = ({ clientId }: PoliciesProps) => {
       {noData && searching && (
         <ListEmptyState
           isSearchVariant
-          message={t("common:noSearchResults")}
-          instructions={t("common:noSearchResultsInstructions")}
+          message={t("noSearchResults")}
+          instructions={t("noSearchResultsInstructions")}
         />
       )}
       {noData && !searching && (
@@ -316,11 +317,11 @@ export const AuthorizationPolicies = ({ clientId }: PoliciesProps) => {
           {newDialog && (
             <NewPolicyDialog
               policyProviders={policyProviders?.filter(
-                (p) => p.type !== "aggregate"
+                (p) => p.type !== "aggregate",
               )}
               onSelect={(p) =>
                 navigate(
-                  toCreatePolicy({ id: clientId, realm, policyType: p.type! })
+                  toCreatePolicy({ id: clientId, realm, policyType: p.type! }),
                 )
               }
               toggleDialog={toggleDialog}

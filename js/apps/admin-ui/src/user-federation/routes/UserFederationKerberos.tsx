@@ -9,20 +9,20 @@ export type UserFederationKerberosParams = {
 };
 
 const UserFederationKerberosSettings = lazy(
-  () => import("../UserFederationKerberosSettings")
+  () => import("../UserFederationKerberosSettings"),
 );
 
 export const UserFederationKerberosRoute: AppRouteObject = {
   path: "/:realm/user-federation/kerberos/:id",
   element: <UserFederationKerberosSettings />,
-  breadcrumb: (t) => t("common:settings"),
+  breadcrumb: (t) => t("settings"),
   handle: {
     access: "view-realm",
   },
 };
 
 export const toUserFederationKerberos = (
-  params: UserFederationKerberosParams
+  params: UserFederationKerberosParams,
 ): Partial<Path> => ({
   pathname: generatePath(UserFederationKerberosRoute.path, params),
 });

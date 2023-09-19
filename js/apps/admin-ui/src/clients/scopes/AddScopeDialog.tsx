@@ -1,34 +1,33 @@
-import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import type ClientScopeRepresentation from "@keycloak/keycloak-admin-client/lib/defs/clientScopeRepresentation";
 import {
   Button,
   ButtonVariant,
   Dropdown,
+  DropdownDirection,
+  DropdownItem,
   DropdownToggle,
   Modal,
   ModalVariant,
-  DropdownDirection,
-  DropdownItem,
   Select,
   SelectOption,
   SelectVariant,
-  SelectDirection,
 } from "@patternfly/react-core";
 import {
   CaretDownIcon,
   CaretUpIcon,
   FilterIcon,
 } from "@patternfly/react-icons";
-import type ClientScopeRepresentation from "@keycloak/keycloak-admin-client/lib/defs/clientScopeRepresentation";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   ClientScopeType,
   clientScopeTypesDropdown,
 } from "../../components/client-scope/ClientScopeTypes";
-import { KeycloakDataTable } from "../../components/table-toolbar/KeycloakDataTable";
 import { ListEmptyState } from "../../components/list-empty-state/ListEmptyState";
-import { getProtocolName } from "../utils";
+import { KeycloakDataTable } from "../../components/table-toolbar/KeycloakDataTable";
 import useToggle from "../../utils/useToggle";
+import { getProtocolName } from "../utils";
 
 import "./client-scopes.css";
 
@@ -38,7 +37,7 @@ export type AddScopeDialogProps = {
   open: boolean;
   toggleDialog: () => void;
   onAdd: (
-    scopes: { scope: ClientScopeRepresentation; type?: ClientScopeType }[]
+    scopes: { scope: ClientScopeRepresentation; type?: ClientScopeType }[],
   ) => void;
   isClientScopesConditionType?: boolean;
 };
@@ -62,7 +61,7 @@ export const AddScopeDialog = ({
   onAdd,
   isClientScopesConditionType,
 }: AddScopeDialogProps) => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const [addToggle, setAddToggle] = useState(false);
   const [rows, setRows] = useState<ClientScopeRepresentation[]>([]);
   const [filterType, setFilterType] = useState(FilterType.Name);
@@ -120,7 +119,7 @@ export const AddScopeDialog = ({
       {t("protocolTypes.saml")}
     </SelectOption>,
     <SelectOption key={2} value={ProtocolType.OpenIDConnect}>
-      {t("protocolTypes.openIdConnect")}
+      {t("protocolTypes.openid-connect")}
     </SelectOption>,
     <SelectOption key={3} value={ProtocolType.All} isPlaceholder>
       {t("protocolTypes.all")}
@@ -152,7 +151,7 @@ export const AddScopeDialog = ({
                 }}
                 isDisabled={rows.length === 0}
               >
-                {t("common:add")}
+                {t("add")}
               </Button>,
               <Button
                 id="modal-cancel"
@@ -164,7 +163,7 @@ export const AddScopeDialog = ({
                   toggleDialog();
                 }}
               >
-                {t("common:cancel")}
+                {t("cancel")}
               </Button>,
             ]
           : [
@@ -182,7 +181,7 @@ export const AddScopeDialog = ({
                     toggleIndicator={CaretUpIcon}
                     id="add-scope-toggle"
                   >
-                    {t("common:add")}
+                    {t("add")}
                   </DropdownToggle>
                 }
                 dropdownItems={clientScopeTypesDropdown(t, action)}
@@ -196,16 +195,16 @@ export const AddScopeDialog = ({
                   toggleDialog();
                 }}
               >
-                {t("common:cancel")}
+                {t("cancel")}
               </Button>,
             ]
       }
     >
       <KeycloakDataTable
         loader={clientScopes}
-        ariaLabelKey="client-scopes:chooseAMapperType"
+        ariaLabelKey="chooseAMapperType"
         searchPlaceholderKey={
-          filterType === FilterType.Name ? "client-scopes:searchFor" : undefined
+          filterType === FilterType.Name ? "searchForClientScope" : undefined
         }
         isSearching={filterType !== FilterType.Name}
         searchTypeComponent={
@@ -230,9 +229,7 @@ export const AddScopeDialog = ({
                 data-testid="filter-type-dropdown-item"
                 key="filter-type"
               >
-                {filterType === FilterType.Name
-                  ? t("protocol")
-                  : t("common:name")}
+                {filterType === FilterType.Name ? t("protocol") : t("name")}
               </DropdownItem>,
             ]}
           />
@@ -261,21 +258,20 @@ export const AddScopeDialog = ({
                     data-testid="filter-type-dropdown-item"
                     key="filter-type"
                   >
-                    {t("common:name")}
+                    {t("name")}
                   </DropdownItem>,
                 ]}
               />
               <Select
                 variant={SelectVariant.single}
                 className="kc-protocolType-select"
-                aria-label="Select Input"
+                aria-label={t("selectOne")}
                 onToggle={toggleIsProtocolTypeDropdownOpen}
                 onSelect={(_, value) =>
                   onProtocolTypeDropdownSelect(value.toString())
                 }
                 selections={protocolType}
                 isOpen={isProtocolTypeDropdownOpen}
-                direction={SelectDirection.down}
               >
                 {protocolTypeOptions}
               </Select>
@@ -290,7 +286,7 @@ export const AddScopeDialog = ({
           },
           {
             name: "protocol",
-            displayKey: "clients:protocol",
+            displayKey: "protocol",
             cellRenderer: (client) =>
               getProtocolName(t, client.protocol ?? "openid-connect"),
           },

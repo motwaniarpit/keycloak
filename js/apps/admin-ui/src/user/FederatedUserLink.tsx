@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { adminClient } from "../admin-client";
 import { useAccess } from "../context/access/Access";
 import { useRealm } from "../context/realm-context/RealmContext";
-import { toUserFederationLdap } from "../user-federation/routes/UserFederationLdap";
+import { toCustomUserFederation } from "../user-federation/routes/CustomUserFederation";
 import { useFetch } from "../utils/useFetch";
 
 type FederatedUserLinkProps = {
@@ -30,7 +30,7 @@ export const FederatedUserLink = ({ user }: FederatedUserLinkProps) => {
             id: (user.federationLink || user.origin)!,
           }),
     setComponent,
-    []
+    [],
   );
 
   if (!component) return null;
@@ -42,8 +42,9 @@ export const FederatedUserLink = ({ user }: FederatedUserLinkProps) => {
       component={(props) => (
         <Link
           {...props}
-          to={toUserFederationLdap({
+          to={toCustomUserFederation({
             id: component.id!,
+            providerId: component.providerId!,
             realm,
           })}
         />

@@ -19,7 +19,7 @@ import { HelpItem } from "ui-shared";
 
 import { adminClient } from "../admin-client";
 import { FormattedLink } from "../components/external-link/FormattedLink";
-import { FormAccess } from "../components/form-access/FormAccess";
+import { FormAccess } from "../components/form/FormAccess";
 import { KeyValueInput } from "../components/key-value-form/KeyValueInput";
 import { KeycloakTextInput } from "../components/keycloak-text-input/KeycloakTextInput";
 import { useRealm } from "../context/realm-context/RealmContext";
@@ -35,13 +35,15 @@ type RealmSettingsGeneralTabProps = {
   save: (realm: RealmRepresentation) => void;
 };
 
+type FormFields = Omit<RealmRepresentation, "groups">;
+
 export const RealmSettingsGeneralTab = ({
   realm,
   save,
 }: RealmSettingsGeneralTabProps) => {
-  const { t } = useTranslation("realm-settings");
+  const { t } = useTranslation();
   const { realm: realmName } = useRealm();
-  const form = useForm<RealmRepresentation>();
+  const form = useForm<FormFields>();
   const {
     register,
     control,
@@ -58,12 +60,12 @@ export const RealmSettingsGeneralTab = ({
     convertToFormValues(realm, setValue);
     if (realm.attributes?.["acr.loa.map"]) {
       const result = Object.entries(
-        JSON.parse(realm.attributes["acr.loa.map"])
+        JSON.parse(realm.attributes["acr.loa.map"]),
       ).flatMap(([key, value]) => ({ key, value }));
       result.concat({ key: "", value: "" });
       setValue(
         convertAttributeNameToForm("attributes.acr.loa.map") as any,
-        result
+        result,
       );
     }
   };
@@ -89,7 +91,7 @@ export const RealmSettingsGeneralTab = ({
             name="realm"
             control={control}
             rules={{
-              required: { value: true, message: t("common:required") },
+              required: { value: true, message: t("required") },
               pattern: {
                 value: /^[a-zA-Z0-9-_]+$/,
                 message: t("realm:invalidRealmName"),
@@ -120,7 +122,7 @@ export const RealmSettingsGeneralTab = ({
           fieldId="kc-frontend-url"
           labelIcon={
             <HelpItem
-              helpText={t("realm-settings-help:frontendUrl")}
+              helpText={t("frontendUrlHelp")}
               fieldLabelId="realm-settings:frontendUrl"
             />
           }
@@ -136,7 +138,7 @@ export const RealmSettingsGeneralTab = ({
           fieldId="kc-require-ssl"
           labelIcon={
             <HelpItem
-              helpText={t("realm-settings-help:requireSsl")}
+              helpText={t("requireSslHelp")}
               fieldLabelId="realm-settings:requireSsl"
             />
           }
@@ -172,12 +174,12 @@ export const RealmSettingsGeneralTab = ({
           />
         </FormGroup>
         <FormGroup
-          label={t("clients:acrToLoAMapping")}
+          label={t("acrToLoAMapping")}
           fieldId="acrToLoAMapping"
           labelIcon={
             <HelpItem
-              helpText={t("clients-help:acrToLoAMapping")}
-              fieldLabelId="clients:acrToLoAMapping"
+              helpText={t("acrToLoAMappingHelp")}
+              fieldLabelId="acrToLoAMapping"
             />
           }
         >
@@ -192,7 +194,7 @@ export const RealmSettingsGeneralTab = ({
           label={t("userManagedAccess")}
           labelIcon={
             <HelpItem
-              helpText={t("realm-settings-help:userManagedAccess")}
+              helpText={t("userManagedAccessHelp")}
               fieldLabelId="realm-settings:userManagedAccess"
             />
           }
@@ -206,8 +208,8 @@ export const RealmSettingsGeneralTab = ({
               <Switch
                 id="kc-user-managed-access"
                 data-testid="user-managed-access-switch"
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 isChecked={field.value}
                 onChange={field.onChange}
                 aria-label={t("userManagedAccess")}
@@ -221,7 +223,7 @@ export const RealmSettingsGeneralTab = ({
             label={t("userProfileEnabled")}
             labelIcon={
               <HelpItem
-                helpText={t("realm-settings-help:userProfileEnabled")}
+                helpText={t("userProfileEnabledHelp")}
                 fieldLabelId="realm-settings:userProfileEnabled"
               />
             }
@@ -230,7 +232,7 @@ export const RealmSettingsGeneralTab = ({
             <Controller
               name={
                 convertAttributeNameToForm(
-                  "attributes.userProfileEnabled"
+                  "attributes.userProfileEnabled",
                 ) as any
               }
               control={control}
@@ -239,8 +241,8 @@ export const RealmSettingsGeneralTab = ({
                 <Switch
                   id="kc-user-profile-enabled"
                   data-testid="user-profile-enabled-switch"
-                  label={t("common:on")}
-                  labelOff={t("common:off")}
+                  label={t("on")}
+                  labelOff={t("off")}
                   isChecked={field.value === "true"}
                   onChange={(value) => field.onChange(value.toString())}
                   aria-label={t("userProfileEnabled")}
@@ -253,7 +255,7 @@ export const RealmSettingsGeneralTab = ({
           label={t("endpoints")}
           labelIcon={
             <HelpItem
-              helpText={t("realm-settings-help:endpoints")}
+              helpText={t("endpointsHelp")}
               fieldLabelId="realm-settings:endpoints"
             />
           }
@@ -263,7 +265,7 @@ export const RealmSettingsGeneralTab = ({
             <StackItem>
               <FormattedLink
                 href={`${addTrailingSlash(
-                  adminClient.baseUrl
+                  adminClient.baseUrl,
                 )}realms/${realmName}/.well-known/openid-configuration`}
                 title={t("openIDEndpointConfiguration")}
               />
@@ -271,7 +273,7 @@ export const RealmSettingsGeneralTab = ({
             <StackItem>
               <FormattedLink
                 href={`${addTrailingSlash(
-                  adminClient.baseUrl
+                  adminClient.baseUrl,
                 )}realms/${realmName}/protocol/saml/descriptor`}
                 title={t("samlIdentityProviderMetadata")}
               />
@@ -286,14 +288,14 @@ export const RealmSettingsGeneralTab = ({
             data-testid="general-tab-save"
             isDisabled={!isDirty}
           >
-            {t("common:save")}
+            {t("save")}
           </Button>
           <Button
             data-testid="general-tab-revert"
             variant="link"
             onClick={setupForm}
           >
-            {t("common:revert")}
+            {t("revert")}
           </Button>
         </ActionGroup>
       </FormAccess>

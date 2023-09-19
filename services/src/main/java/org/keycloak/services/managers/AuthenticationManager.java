@@ -100,6 +100,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -170,7 +171,7 @@ public class AuthenticationManager {
     // Parameter of LogoutEndpoint
     public static final String INITIATING_IDP_PARAM = "initiating_idp";
 
-    private static final TokenTypeCheck VALIDATE_IDENTITY_COOKIE = new TokenTypeCheck(TokenUtil.TOKEN_TYPE_KEYCLOAK_ID);
+    private static final TokenTypeCheck VALIDATE_IDENTITY_COOKIE = new TokenTypeCheck(Arrays.asList(TokenUtil.TOKEN_TYPE_KEYCLOAK_ID));
 
     public static boolean isSessionValid(RealmModel realm, UserSessionModel userSession) {
         if (userSession == null) {
@@ -281,13 +282,17 @@ public class AuthenticationManager {
             backchannelLogoutResponse.setLocalLogoutSucceeded(true);
             return backchannelLogoutResponse;
         }
-        UserModel user = userSession.getUser();
         if (userSession.getState() != UserSessionModel.State.LOGGING_OUT) {
             userSession.setState(UserSessionModel.State.LOGGING_OUT);
         }
 
-        logger.debugv("Logging out: {0} ({1}) offline: {2}", user.getUsername(), userSession.getId(),
-                userSession.isOffline());
+        if (logger.isDebugEnabled()) {
+            UserModel user = userSession.getUser();
+            String username = user == null ? null : user.getUsername();
+            logger.debugv("Logging out: {0} ({1}) offline: {2}", username, userSession.getId(),
+                    userSession.isOffline());
+        }
+
         boolean expireUserSessionCookieSucceeded =
                 expireUserSessionCookie(session, userSession, realm, uriInfo, headers, connection);
 
@@ -1052,7 +1057,7 @@ public class AuthenticationManager {
         if (actionTokenKeyToInvalidate != null) {
             SingleUseObjectKeyModel actionTokenKey = DefaultActionTokenKey.from(actionTokenKeyToInvalidate);
             if (actionTokenKey != null) {
-                SingleUseObjectProvider singleUseObjectProvider = session.getProvider(SingleUseObjectProvider.class);
+                SingleUseObjectProvider singleUseObjectProvider = session.singleUseObjects();
                 singleUseObjectProvider.put(actionTokenKeyToInvalidate, actionTokenKey.getExpiration() - Time.currentTime(), null); // Token is invalidated
             }
         }
@@ -1069,6 +1074,7 @@ public class AuthenticationManager {
                 infoPage.setAttribute(Constants.SKIP_LINK, true);
             }
             Response response = infoPage
+                    .setDetachedAuthSession()
                     .createInfoPage();
 
             new AuthenticationSessionManager(session).removeAuthenticationSession(authSession.getRealm(), authSession, true);

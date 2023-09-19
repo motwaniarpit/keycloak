@@ -2,11 +2,11 @@ import { FormGroup } from "@patternfly/react-core";
 import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { FormAccess } from "../../components/form-access/FormAccess";
 import { HelpItem } from "ui-shared";
+import { FixedButtonsGroup } from "../../components/form/FixedButtonGroup";
+import { FormAccess } from "../../components/form/FormAccess";
 import { KeycloakTextInput } from "../../components/keycloak-text-input/KeycloakTextInput";
 import { useAccess } from "../../context/access/Access";
-import { SaveReset } from "../advanced/SaveReset";
 import { FormFields } from "../ClientDetails";
 import type { ClientSettingsProps } from "../ClientSettings";
 import { LoginSettings } from "./LoginSettings";
@@ -16,7 +16,7 @@ export const AccessSettings = ({
   save,
   reset,
 }: ClientSettingsProps) => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const { register, watch } = useFormContext<FormFields>();
 
   const { hasAccess } = useAccess();
@@ -36,10 +36,7 @@ export const AccessSettings = ({
           label={t("adminURL")}
           fieldId="kc-admin-url"
           labelIcon={
-            <HelpItem
-              helpText={t("clients-help:adminURL")}
-              fieldLabelId="clients:adminURL"
-            />
+            <HelpItem helpText={t("adminURLHelp")} fieldLabelId="adminURL" />
           }
         >
           <KeycloakTextInput
@@ -50,8 +47,7 @@ export const AccessSettings = ({
         </FormGroup>
       )}
       {client.bearerOnly && (
-        <SaveReset
-          className="keycloak__form_actions"
+        <FixedButtonsGroup
           name="settings"
           save={save}
           reset={reset}

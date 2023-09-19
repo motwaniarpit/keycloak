@@ -51,12 +51,12 @@ export const ClientSelect = ({
       return adminClient.clients.find(params);
     },
     (clients) => setClients(clients),
-    [search]
+    [search],
   );
 
   const convert = (clients: ClientRepresentation[]) => [
     <SelectOption key="empty" value="">
-      {t("common:none")}
+      {t("none")}
     </SelectOption>,
     ...clients.map((option) => (
       <SelectOption key={option.id} value={option.clientId} />
@@ -75,7 +75,7 @@ export const ClientSelect = ({
       }
       fieldId={name!}
       validated={errors[name!] ? "error" : "default"}
-      helperTextInvalid={t("common:required")}
+      helperTextInvalid={t("required")}
     >
       <Controller
         name={name!}

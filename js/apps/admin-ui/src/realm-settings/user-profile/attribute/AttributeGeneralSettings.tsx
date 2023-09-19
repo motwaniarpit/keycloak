@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import { HelpItem } from "ui-shared";
 
 import { adminClient } from "../../../admin-client";
-import { FormAccess } from "../../../components/form-access/FormAccess";
+import { FormAccess } from "../../../components/form/FormAccess";
 import { KeycloakSpinner } from "../../../components/keycloak-spinner/KeycloakSpinner";
 import { KeycloakTextInput } from "../../../components/keycloak-text-input/KeycloakTextInput";
 import { useFetch } from "../../../utils/useFetch";
@@ -33,7 +33,7 @@ const REQUIRED_FOR = [
 ] as const;
 
 export const AttributeGeneralSettings = () => {
-  const { t } = useTranslation("realm-settings");
+  const { t } = useTranslation();
   const form = useFormContext();
   const [clientScopes, setClientScopes] =
     useState<ClientScopeRepresentation[]>();
@@ -82,7 +82,7 @@ export const AttributeGeneralSettings = () => {
         fieldId="kc-attribute-name"
         isRequired
         validated={form.formState.errors.name ? "error" : "default"}
-        helperTextInvalid={t("validateName")}
+        helperTextInvalid={t("validateAttributeName")}
       >
         <KeycloakTextInput
           isRequired
@@ -136,12 +136,12 @@ export const AttributeGeneralSettings = () => {
                 field.onChange(value.toString());
                 setIsAttributeGroupDropdownOpen(false);
               }}
-              selections={[field.value || t("common:none")]}
+              selections={[field.value || t("none")]}
               variant={SelectVariant.single}
             >
               {[
                 <SelectOption key="empty" value="">
-                  {t("common:none")}
+                  {t("none")}
                 </SelectOption>,
                 ...(config?.groups?.map((group) => (
                   <SelectOption key={group.name} value={group.name}>
@@ -171,7 +171,7 @@ export const AttributeGeneralSettings = () => {
                 if (value) {
                   form.setValue(
                     "selector.scopes",
-                    clientScopes.map((s) => s.name)
+                    clientScopes.map((s) => s.name),
                   );
                 } else {
                   form.setValue("selector.scopes", []);
@@ -191,7 +191,7 @@ export const AttributeGeneralSettings = () => {
                 } else {
                   form.setValue(
                     "selector.scopes",
-                    clientScopes.map((s) => s.name)
+                    clientScopes.map((s) => s.name),
                   );
                 }
               }}
@@ -211,8 +211,8 @@ export const AttributeGeneralSettings = () => {
                   typeAheadAriaLabel="Select"
                   chipGroupProps={{
                     numChips: 3,
-                    expandedText: t("common:hide"),
-                    collapsedText: t("common:showRemaining"),
+                    expandedText: t("hide"),
+                    collapsedText: t("showRemaining"),
                   }}
                   onToggle={(isOpen) => setSelectEnabledWhenOpen(isOpen)}
                   selections={field.value}
@@ -267,8 +267,8 @@ export const AttributeGeneralSettings = () => {
                   id={"kc-required"}
                   onChange={field.onChange}
                   isChecked={field.value}
-                  label={t("common:on")}
-                  labelOff={t("common:off")}
+                  label={t("on")}
+                  labelOff={t("off")}
                   aria-label={t("required")}
                 />
               )}
@@ -321,7 +321,7 @@ export const AttributeGeneralSettings = () => {
                     if (value) {
                       form.setValue(
                         "required.scopes",
-                        clientScopes.map((s) => s.name)
+                        clientScopes.map((s) => s.name),
                       );
                     } else {
                       form.setValue("required.scopes", []);
@@ -341,7 +341,7 @@ export const AttributeGeneralSettings = () => {
                     } else {
                       form.setValue(
                         "required.scopes",
-                        clientScopes.map((s) => s.name)
+                        clientScopes.map((s) => s.name),
                       );
                     }
                   }}
@@ -361,8 +361,8 @@ export const AttributeGeneralSettings = () => {
                       typeAheadAriaLabel="Select"
                       chipGroupProps={{
                         numChips: 3,
-                        expandedText: t("common:hide"),
-                        collapsedText: t("common:showRemaining"),
+                        expandedText: t("hide"),
+                        collapsedText: t("showRemaining"),
                       }}
                       onToggle={(isOpen) => setSelectRequiredForOpen(isOpen)}
                       selections={field.value}
@@ -372,7 +372,7 @@ export const AttributeGeneralSettings = () => {
                         if (field.value) {
                           changedValue = field.value.includes(option)
                             ? field.value.filter(
-                                (item: string) => item !== option
+                                (item: string) => item !== option,
                               )
                             : [...field.value, option];
                         } else {

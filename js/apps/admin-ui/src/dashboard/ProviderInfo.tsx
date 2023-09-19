@@ -12,10 +12,9 @@ import {
 
 import { useServerInfo } from "../context/server-info/ServerInfoProvider";
 import { TableToolbar } from "../components/table-toolbar/TableToolbar";
-import { isDefined } from "ui-shared";
 
 export const ProviderInfo = () => {
-  const { t } = useTranslation("dashboard");
+  const { t } = useTranslation();
   const serverInfo = useServerInfo();
   const [filter, setFilter] = useState("");
   const [open, setOpen] = useState<string[]>([]);
@@ -23,9 +22,9 @@ export const ProviderInfo = () => {
   const providerInfo = useMemo(
     () =>
       Object.entries(serverInfo.providers || []).filter(([key]) =>
-        key.includes(filter)
+        key.includes(filter),
       ),
-    [filter]
+    [filter],
   );
 
   const toggleOpen = (option: string) => {
@@ -40,7 +39,7 @@ export const ProviderInfo = () => {
     <PageSection variant="light">
       <TableToolbar
         inputGroupName="search"
-        inputGroupPlaceholder={t("common:search")}
+        inputGroupPlaceholder={t("search")}
         inputGroupOnEnter={setFilter}
       >
         <TableComposable variant="compact">
@@ -56,37 +55,39 @@ export const ProviderInfo = () => {
                 <Td>{name}</Td>
                 <Td>
                   <ul>
-                    {Object.entries(providers).map(([key]) => (
-                      <li key={key}>{key}</li>
-                    ))}
+                    {Object.entries(providers).map(
+                      ([key, { operationalInfo }]) => (
+                        <li key={key}>
+                          {key}
+                          {operationalInfo ? (
+                            <ExpandableSection
+                              key={key}
+                              isExpanded={open.includes(key)}
+                              onToggle={() => toggleOpen(key)}
+                              toggleText={
+                                open.includes(key)
+                                  ? t("showLess")
+                                  : t("showMore")
+                              }
+                            >
+                              <TableComposable borders={false}>
+                                <Tbody>
+                                  {Object.entries(operationalInfo).map(
+                                    ([key, value]) => (
+                                      <Tr key={key}>
+                                        <Td>{key}</Td>
+                                        <Td>{value}</Td>
+                                      </Tr>
+                                    ),
+                                  )}
+                                </Tbody>
+                              </TableComposable>
+                            </ExpandableSection>
+                          ) : null}
+                        </li>
+                      ),
+                    )}
                   </ul>
-                  {Object.entries(providers)
-                    .map(([key, { operationalInfo }]) =>
-                      operationalInfo ? (
-                        <ExpandableSection
-                          key={key}
-                          isExpanded={open.includes(key)}
-                          onToggle={() => toggleOpen(key)}
-                          toggleText={
-                            open.includes(key) ? t("showLess") : t("showMore")
-                          }
-                        >
-                          <TableComposable borders={false}>
-                            <Tbody>
-                              {Object.entries(operationalInfo).map(
-                                ([key, value]) => (
-                                  <Tr key={key}>
-                                    <Td>{key}</Td>
-                                    <Td>{value}</Td>
-                                  </Tr>
-                                )
-                              )}
-                            </Tbody>
-                          </TableComposable>
-                        </ExpandableSection>
-                      ) : null
-                    )
-                    .filter(isDefined)}
                 </Td>
               </Tr>
             ))}

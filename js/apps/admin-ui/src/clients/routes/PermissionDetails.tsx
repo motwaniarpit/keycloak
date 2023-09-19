@@ -12,20 +12,20 @@ export type PermissionDetailsParams = {
 };
 
 const PermissionDetails = lazy(
-  () => import("../authorization/PermissionDetails")
+  () => import("../authorization/PermissionDetails"),
 );
 
 export const PermissionDetailsRoute: AppRouteObject = {
   path: "/:realm/clients/:id/authorization/permission/:permissionType/:permissionId",
   element: <PermissionDetails />,
-  breadcrumb: (t) => t("clients:permissionDetails"),
+  breadcrumb: (t) => t("permissionDetails"),
   handle: {
     access: "view-clients",
   },
 };
 
 export const toPermissionDetails = (
-  params: PermissionDetailsParams
+  params: PermissionDetailsParams,
 ): Partial<Path> => ({
   pathname: generatePath(PermissionDetailsRoute.path, params),
 });

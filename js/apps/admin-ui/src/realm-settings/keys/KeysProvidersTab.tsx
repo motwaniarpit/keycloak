@@ -49,13 +49,13 @@ export const KeysProvidersTab = ({
   realmComponents,
   refresh,
 }: KeysProvidersTabProps) => {
-  const { t } = useTranslation("realm-settings");
+  const { t } = useTranslation();
   const { addAlert, addError } = useAlerts();
   const { realm } = useRealm();
 
   const [searchVal, setSearchVal] = useState("");
   const [filteredComponents, setFilteredComponents] = useState<ComponentData[]>(
-    []
+    [],
   );
 
   const [isCreateModalOpen, handleModalToggle] = useToggle();
@@ -75,7 +75,7 @@ export const KeysProvidersTab = ({
       realmComponents.map((component) => {
         const provider = keyProviderComponentTypes.find(
           (componentType: ComponentTypeRepresentation) =>
-            component.providerId === componentType.id
+            component.providerId === componentType.id,
         );
 
         return {
@@ -83,7 +83,7 @@ export const KeysProvidersTab = ({
           providerDescription: provider?.helpText,
         };
       }),
-    [realmComponents]
+    [realmComponents],
   );
 
   const [toggleDeleteDialog, DeleteConfirm] = useConfirmDialog({
@@ -91,7 +91,7 @@ export const KeysProvidersTab = ({
     messageKey: t("deleteProviderConfirm", {
       provider: selectedComponent?.name,
     }),
-    continueButtonLabel: "common:delete",
+    continueButtonLabel: "delete",
     continueButtonVariant: ButtonVariant.danger,
     onConfirm: async () => {
       try {
@@ -115,7 +115,7 @@ export const KeysProvidersTab = ({
       const filteredComponents = components.filter(
         (component) =>
           component.name?.includes(searchVal) ||
-          component.providerId?.includes(searchVal)
+          component.providerId?.includes(searchVal),
       );
       setFilteredComponents(filteredComponents);
     } else {
@@ -166,14 +166,14 @@ export const KeysProvidersTab = ({
                   id={"inputGroupName"}
                   data-testid="provider-search-input"
                   type="search"
-                  aria-label={t("common:search")}
-                  placeholder={t("common:search")}
+                  aria-label={t("search")}
+                  placeholder={t("search")}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
                 />
                 <Button
                   variant={ButtonVariant.control}
-                  aria-label={t("common:search")}
+                  aria-label={t("search")}
                   onClick={onSearch}
                 >
                   <SearchIcon />
@@ -216,7 +216,7 @@ export const KeysProvidersTab = ({
                       ).toString(),
                     ],
                   },
-                }
+                },
               );
             });
 
@@ -257,7 +257,7 @@ export const KeysProvidersTab = ({
           ]}
           actions={[
             {
-              title: t("common:delete"),
+              title: t("delete"),
               onClick: (_key, _idx, component) => {
                 setSelectedComponent(component as ComponentRepresentation);
                 toggleDeleteDialog();

@@ -9,11 +9,12 @@ import {
 } from "@patternfly/react-core";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { FormAccess } from "../../components/form/FormAccess";
 import { HelpItem } from "ui-shared";
 
 import { adminClient } from "../../admin-client";
 import { useAlerts } from "../../components/alert/Alerts";
-import { FormAccess } from "../../components/form-access/FormAccess";
 import { RoleMapping, Row } from "../../components/role-mapping/RoleMapping";
 import { useAccess } from "../../context/access/Access";
 
@@ -24,7 +25,7 @@ type DedicatedScopeProps = {
 export const DedicatedScope = ({
   client: initialClient,
 }: DedicatedScopeProps) => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const { addAlert, addError } = useAlerts();
 
   const [client, setClient] = useState<ClientRepresentation>(initialClient);
@@ -43,7 +44,7 @@ export const DedicatedScope = ({
           {
             id: client.id!,
           },
-          realmRoles
+          realmRoles,
         ),
         ...rows
           .filter((row) => row.client !== undefined)
@@ -53,14 +54,14 @@ export const DedicatedScope = ({
                 id: client.id!,
                 client: row.client!.id!,
               },
-              [row.role as RoleMappingPayload]
-            )
+              [row.role as RoleMappingPayload],
+            ),
           ),
       ]);
 
       addAlert(t("clientScopeSuccess"), AlertVariant.success);
     } catch (error) {
-      addError("clients:clientScopeError", error);
+      addError("clientScopeError", error);
     }
   };
 
@@ -71,7 +72,7 @@ export const DedicatedScope = ({
       addAlert(t("clientScopeSuccess"), AlertVariant.success);
       setClient(newClient);
     } catch (error) {
-      addError("clients:clientScopeError", error);
+      addError("clientScopeError", error);
     }
   };
 
@@ -87,16 +88,16 @@ export const DedicatedScope = ({
           label={t("fullScopeAllowed")}
           labelIcon={
             <HelpItem
-              helpText={t("clients-help:fullScopeAllowed")}
-              fieldLabelId="clients:fullScopeAllowed"
+              helpText={t("fullScopeAllowedHelp")}
+              fieldLabelId="fullScopeAllowed"
             />
           }
           fieldId="fullScopeAllowed"
         >
           <Switch
             id="fullScopeAllowed"
-            label={t("common:on")}
-            labelOff={t("common:off")}
+            label={t("on")}
+            labelOff={t("off")}
             isChecked={client.fullScopeAllowed}
             onChange={update}
             aria-label={t("fullScopeAllowed")}

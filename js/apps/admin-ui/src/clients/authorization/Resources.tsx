@@ -50,7 +50,7 @@ const UriRenderer = ({ row }: { row: ResourceRepresentation }) => (
 );
 
 export const AuthorizationResources = ({ clientId }: ResourcesProps) => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { addAlert, addError } = useAlerts();
   const { realm } = useRealm();
@@ -84,9 +84,9 @@ export const AuthorizationResources = ({ clientId }: ResourcesProps) => {
     },
     (resources) =>
       setResources(
-        resources.map((resource) => ({ ...resource, isExpanded: false }))
+        resources.map((resource) => ({ ...resource, isExpanded: false })),
       ),
-    [key, search, first, max]
+    [key, search, first, max],
   );
 
   const fetchPermissions = async (id: string) => {
@@ -97,7 +97,7 @@ export const AuthorizationResources = ({ clientId }: ResourcesProps) => {
   };
 
   const [toggleDeleteDialog, DeleteConfirm] = useConfirmDialog({
-    titleKey: "clients:deleteResource",
+    titleKey: "deleteResource",
     children: (
       <>
         {t("deleteResourceConfirm")}
@@ -120,7 +120,7 @@ export const AuthorizationResources = ({ clientId }: ResourcesProps) => {
         )}
       </>
     ),
-    continueButtonLabel: "clients:confirm",
+    continueButtonLabel: "confirm",
     onConfirm: async () => {
       try {
         await adminClient.clients.delResource({
@@ -130,7 +130,7 @@ export const AuthorizationResources = ({ clientId }: ResourcesProps) => {
         addAlert(t("resourceDeletedSuccess"), AlertVariant.success);
         refresh();
       } catch (error) {
-        addError("clients:resourceDeletedError", error);
+        addError("resourceDeletedError", error);
       }
     },
   });
@@ -185,14 +185,14 @@ export const AuthorizationResources = ({ clientId }: ResourcesProps) => {
             <TableComposable aria-label={t("resources")} variant="compact">
               <Thead>
                 <Tr>
-                  <Th />
-                  <Th>{t("common:name")}</Th>
+                  <Th aria-hidden="true" />
+                  <Th>{t("name")}</Th>
                   <Th>{t("displayName")}</Th>
-                  <Th>{t("common:type")}</Th>
+                  <Th>{t("type")}</Th>
                   <Th>{t("owner")}</Th>
                   <Th>{t("uris")}</Th>
-                  <Th />
-                  <Th />
+                  <Th aria-hidden="true" />
+                  <Th aria-hidden="true" />
                 </Tr>
               </Thead>
               {resources.map((resource, rowIndex) => (
@@ -209,7 +209,7 @@ export const AuthorizationResources = ({ clientId }: ResourcesProps) => {
                                   ...resource,
                                   isExpanded: !resource.isExpanded,
                                 }
-                              : resource
+                              : resource,
                           );
                           setResources(rows);
                         },
@@ -254,11 +254,11 @@ export const AuthorizationResources = ({ clientId }: ResourcesProps) => {
                       actions={{
                         items: [
                           {
-                            title: t("common:delete"),
+                            title: t("delete"),
                             onClick: async () => {
                               setSelectedResource(resource);
                               setPermission(
-                                await fetchPermissions(resource._id!)
+                                await fetchPermissions(resource._id!),
                               );
                               toggleDeleteDialog();
                             },
@@ -293,8 +293,8 @@ export const AuthorizationResources = ({ clientId }: ResourcesProps) => {
       {noData && searching && (
         <ListEmptyState
           isSearchVariant
-          message={t("common:noSearchResults")}
-          instructions={t("common:noSearchResultsInstructions")}
+          message={t("noSearchResults")}
+          instructions={t("noSearchResultsInstructions")}
         />
       )}
       {noData && !searching && (

@@ -2,7 +2,7 @@ import { FormGroup, Switch } from "@patternfly/react-core";
 import { Controller, UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { HelpItem } from "ui-shared";
 import { KeycloakTextInput } from "../../components/keycloak-text-input/KeycloakTextInput";
 import { WizardSectionHeader } from "../../components/wizard-section-header/WizardSectionHeader";
@@ -18,8 +18,7 @@ export const LdapSettingsSynchronization = ({
   showSectionHeading = false,
   showSectionDescription = false,
 }: LdapSettingsSynchronizationProps) => {
-  const { t } = useTranslation("user-federation");
-  const { t: helpText } = useTranslation("user-federation-help");
+  const { t } = useTranslation();
 
   const watchPeriodicSync = form.watch("config.periodicFullSync", false);
   const watchChangedSync = form.watch("config.periodicChangedUsersSync", false);
@@ -29,7 +28,7 @@ export const LdapSettingsSynchronization = ({
       {showSectionHeading && (
         <WizardSectionHeader
           title={t("synchronizationSettings")}
-          description={helpText("ldapSynchronizationSettingsDescription")}
+          description={t("ldapSynchronizationSettingsDescription")}
           showDescription={showSectionDescription}
         />
       )}
@@ -54,8 +53,8 @@ export const LdapSettingsSynchronization = ({
                 id="kc-import-users"
                 data-testid="import-users"
                 name="importEnabled"
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 onChange={(value) => field.onChange([`${value}`])}
                 isChecked={field.value[0] === "true"}
                 isDisabled={false}
@@ -83,8 +82,8 @@ export const LdapSettingsSynchronization = ({
               <Switch
                 id="syncRegistrations"
                 data-testid="syncRegistrations"
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 onChange={(value) => field.onChange([`${value}`])}
                 isChecked={field.value[0] === "true"}
                 aria-label={t("syncRegistrations")}
@@ -132,8 +131,8 @@ export const LdapSettingsSynchronization = ({
                 isDisabled={false}
                 onChange={(value) => field.onChange(value)}
                 isChecked={field.value === true}
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 aria-label={t("periodicFullSync")}
               />
             )}
@@ -183,8 +182,8 @@ export const LdapSettingsSynchronization = ({
                 isDisabled={false}
                 onChange={(value) => field.onChange(value)}
                 isChecked={field.value === true}
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 aria-label={t("periodicChangedUsersSync")}
               />
             )}

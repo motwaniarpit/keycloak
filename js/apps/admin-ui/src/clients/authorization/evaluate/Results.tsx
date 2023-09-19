@@ -1,29 +1,30 @@
-import { KeyboardEvent, useMemo, useState } from "react";
 import {
-  Select,
-  SelectVariant,
-  SelectOption,
-  PageSection,
-  ActionGroup,
   Button,
-  TextInput,
   ButtonVariant,
+  Divider,
+  Form,
   InputGroup,
+  PageSection,
+  Select,
+  SelectOption,
+  SelectVariant,
+  TextInput,
   Toolbar,
   ToolbarGroup,
   ToolbarItem,
-  Divider,
 } from "@patternfly/react-core";
-import { useTranslation } from "react-i18next";
 import { SearchIcon } from "@patternfly/react-icons";
 import { TableComposable, Th, Thead, Tr } from "@patternfly/react-table";
+import { KeyboardEvent, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import type EvaluationResultRepresentation from "@keycloak/keycloak-admin-client/lib/defs/evaluationResultRepresentation";
 import type PolicyEvaluationResponse from "@keycloak/keycloak-admin-client/lib/defs/policyEvaluationResponse";
-import { AuthorizationEvaluateResource } from "../AuthorizationEvaluateResource";
+import { FixedButtonsGroup } from "../../../components/form/FixedButtonGroup";
 import { ListEmptyState } from "../../../components/list-empty-state/ListEmptyState";
-import { AuthorizationDataModal } from "../AuthorizationDataModal";
 import useToggle from "../../../utils/useToggle";
+import { AuthorizationDataModal } from "../AuthorizationDataModal";
+import { AuthorizationEvaluateResource } from "../AuthorizationEvaluateResource";
 
 type ResultProps = {
   evaluateResult: PolicyEvaluationResponse;
@@ -39,7 +40,7 @@ enum ResultsFilter {
 
 function filterResults(
   results: EvaluationResultRepresentation[],
-  filter: ResultsFilter
+  filter: ResultsFilter,
 ) {
   switch (filter) {
     case ResultsFilter.StatusPermitted:
@@ -52,7 +53,7 @@ function filterResults(
 }
 
 export const Results = ({ evaluateResult, refresh, back }: ResultProps) => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
 
   const [filterDropdownOpen, toggleFilterDropdown] = useToggle();
 
@@ -73,9 +74,9 @@ export const Results = ({ evaluateResult, refresh, back }: ResultProps) => {
   const filteredResources = useMemo(
     () =>
       filterResults(evaluateResult.results!, filter).filter(
-        ({ resource }) => resource?.name?.includes(searchQuery) ?? false
+        ({ resource }) => resource?.name?.includes(searchQuery) ?? false,
       ),
-    [evaluateResult.results, filter, searchQuery]
+    [evaluateResult.results, filter, searchQuery],
   );
 
   const noEvaluatedData = evaluateResult.results!.length === 0;
@@ -91,14 +92,14 @@ export const Results = ({ evaluateResult, refresh, back }: ResultProps) => {
                 name={"inputGroupName"}
                 id={"inputGroupName"}
                 type="search"
-                aria-label={t("common:search")}
-                placeholder={t("common:search")}
+                aria-label={t("search")}
+                placeholder={t("search")}
                 onChange={setSearchInput}
                 onKeyDown={handleKeyDown}
               />
               <Button
                 variant={ButtonVariant.control}
-                aria-label={t("common:search")}
+                aria-label={t("search")}
                 onClick={() => confirmSearchQuery()}
               >
                 <SearchIcon />
@@ -147,11 +148,11 @@ export const Results = ({ evaluateResult, refresh, back }: ResultProps) => {
         <TableComposable aria-label={t("evaluationResults")}>
           <Thead>
             <Tr>
-              <Th />
+              <Th aria-hidden="true" />
               <Th>{t("resource")}</Th>
               <Th>{t("overallResults")}</Th>
               <Th>{t("scopes")}</Th>
-              <Th />
+              <Th aria-hidden="true" />
             </Tr>
           </Thead>
           {filteredResources.map((resource, rowIndex) => (
@@ -169,25 +170,27 @@ export const Results = ({ evaluateResult, refresh, back }: ResultProps) => {
           <Divider />
           <ListEmptyState
             isSearchVariant
-            message={t("common:noSearchResults")}
-            instructions={t("common:noSearchResultsInstructions")}
+            message={t("noSearchResults")}
+            instructions={t("noSearchResultsInstructions")}
           />
         </>
       )}
-      <ActionGroup className="kc-evaluated-options">
-        <Button data-testid="authorization-eval" id="back-btn" onClick={back}>
-          {t("common:back")}
-        </Button>
-        <Button
-          data-testid="authorization-reevaluate"
-          id="reevaluate-btn"
-          variant="secondary"
-          onClick={refresh}
-        >
-          {t("clients:reevaluate")}
-        </Button>
-        <AuthorizationDataModal data={evaluateResult.rpt!} />
-      </ActionGroup>
+      <Form>
+        <FixedButtonsGroup name="authorization">
+          <Button data-testid="authorization-eval" id="back-btn" onClick={back}>
+            {t("back")}
+          </Button>{" "}
+          <Button
+            data-testid="authorization-reevaluate"
+            id="reevaluate-btn"
+            variant="secondary"
+            onClick={refresh}
+          >
+            {t("reevaluate")}
+          </Button>{" "}
+          <AuthorizationDataModal data={evaluateResult.rpt!} />
+        </FixedButtonsGroup>
+      </Form>
     </PageSection>
   );
 };

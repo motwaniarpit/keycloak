@@ -7,11 +7,11 @@ import { useRealm } from "../../context/realm-context/RealmContext";
 import { addTrailingSlash } from "../../util";
 
 export const RedirectUrl = ({ id }: { id: string }) => {
-  const { t } = useTranslation("identity-providers");
+  const { t } = useTranslation();
 
   const { realm } = useRealm();
   const callbackUrl = `${addTrailingSlash(
-    adminClient.baseUrl
+    adminClient.baseUrl,
   )}realms/${realm}/broker`;
 
   return (
@@ -19,7 +19,7 @@ export const RedirectUrl = ({ id }: { id: string }) => {
       label={t("redirectURI")}
       labelIcon={
         <HelpItem
-          helpText={t("identity-providers-help:redirectURI")}
+          helpText={t("redirectURIHelp")}
           fieldLabelId="identity-providers:redirectURI"
         />
       }

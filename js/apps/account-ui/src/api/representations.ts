@@ -79,7 +79,7 @@ export interface UserProfileAttributeMetadata {
   displayName: string;
   required: boolean;
   readOnly: boolean;
-  annotations: { [index: string]: any };
+  annotations?: { [index: string]: any };
   validators: { [index: string]: { [index: string]: any } };
 }
 
@@ -187,7 +187,7 @@ export interface Resource {
   client: Client;
   scopes: Scope[];
   uris: string[];
-  shareRequests: Permission[];
+  shareRequests?: Permission[];
 }
 
 export interface Permission {

@@ -15,14 +15,14 @@ const ClientsSection = lazy(() => import("../ClientsSection"));
 export const ClientRegistrationRoute: AppRouteObject = {
   path: "/:realm/clients/client-registration/:subTab",
   element: <ClientsSection />,
-  breadcrumb: (t) => t("clients:clientRegistration"),
+  breadcrumb: (t) => t("clientRegistration"),
   handle: {
     access: "view-clients",
   },
 };
 
 export const toClientRegistration = (
-  params: ClientRegistrationParams
+  params: ClientRegistrationParams,
 ): Partial<Path> => ({
   pathname: generatePath(ClientRegistrationRoute.path, params),
 });

@@ -64,7 +64,7 @@ describe("Identity provider test", () => {
           return true;
         }
         return false;
-      }
+      },
     );
     return instance;
   }
@@ -80,7 +80,11 @@ describe("Identity provider test", () => {
         { testName: "Gitlab", displayName: "Gitlab", alias: "gitlab" },
         { testName: "Google", displayName: "Google", alias: "google" },
         { testName: "Instagram", displayName: "Instagram", alias: "instagram" },
-        { testName: "Linkedin", displayName: "LinkedIn", alias: "linkedin" },
+        {
+          testName: "LinkedIn OpenID Connect",
+          displayName: "LinkedIn OpenID Connect",
+          alias: "linkedin-openid-connect",
+        },
         { testName: "Microsoft", displayName: "Microsoft", alias: "microsoft" },
         {
           testName: "Openshift-v3",
@@ -104,8 +108,8 @@ describe("Identity provider test", () => {
       after(async () => {
         await Promise.all(
           socialLoginIdentityProviders.map((idp) =>
-            adminClient.deleteIdentityProvider(idp.alias)
-          )
+            adminClient.deleteIdentityProvider(idp.alias),
+          ),
         );
       });
 
@@ -177,8 +181,8 @@ describe("Identity provider test", () => {
     it("create and delete provider by item details", () => {
       createProviderPage
         .clickCreateDropdown()
-        .clickItem("linkedin")
-        .fill("linkedin", "123")
+        .clickItem("linkedin-openid-connect")
+        .fill("linkedin-openid-connect", "123")
         .clickAdd();
       masthead.checkNotificationMessage(createSuccessMsg, true);
 
@@ -306,7 +310,7 @@ describe("Identity provider test", () => {
       listingPage.goToItemDetails("github");
 
       githubSettings.fillData("github");
-      cy.findByTestId("save").click();
+      cy.findByTestId("idp-details-save").click();
     });
 
     it("should check input switches and inputs", () => {
@@ -314,11 +318,11 @@ describe("Identity provider test", () => {
       listingPage.goToItemDetails("github");
 
       advancedSettings.typeScopesInput("openid");
-      //advancedSettings.assertScopesInputEqual("openid"); //this line doesn't work
+      advancedSettings.assertScopesInputEqual("openid");
 
       advancedSettings.assertStoreTokensSwitchTurnedOn(false);
       advancedSettings.assertAcceptsPromptNoneForwardFromClientSwitchTurnedOn(
-        false
+        false,
       );
       advancedSettings.assertDisableUserInfoSwitchTurnedOn(false);
       advancedSettings.assertTrustEmailSwitchTurnedOn(false);
@@ -331,17 +335,24 @@ describe("Identity provider test", () => {
       advancedSettings.clickTrustEmailSwitch();
       advancedSettings.clickAccountLinkingOnlySwitch();
       advancedSettings.clickHideOnLoginPageSwitch();
+      advancedSettings.clickEssentialClaimSwitch();
+      advancedSettings.typeClaimNameInput("claim-name");
+      advancedSettings.typeClaimValueInput("claim-value");
 
+      advancedSettings.ensureAdvancedSettingsAreVisible();
       advancedSettings.assertStoreTokensSwitchTurnedOn(true);
       advancedSettings.assertAcceptsPromptNoneForwardFromClientSwitchTurnedOn(
-        true
+        true,
       );
       advancedSettings.assertDisableUserInfoSwitchTurnedOn(true);
       advancedSettings.assertTrustEmailSwitchTurnedOn(true);
       advancedSettings.assertAccountLinkingOnlySwitchTurnedOn(true);
       advancedSettings.assertHideOnLoginPageSwitchTurnedOn(true);
+      advancedSettings.assertEssentialClaimSwitchTurnedOn(true);
+      advancedSettings.assertClaimInputEqual("claim-name");
+      advancedSettings.assertClaimValueInputEqual("claim-value");
 
-      cy.findByTestId("save").click();
+      cy.findByTestId("idp-details-save").click();
     });
 
     it("should revert and save options", () => {
@@ -351,18 +362,19 @@ describe("Identity provider test", () => {
       cy.findByTestId("jump-link-advanced-settings").click();
       advancedSettings.assertStoreTokensSwitchTurnedOn(true);
       advancedSettings.assertAcceptsPromptNoneForwardFromClientSwitchTurnedOn(
-        true
+        true,
       );
       advancedSettings.clickStoreTokensSwitch();
       advancedSettings.clickAcceptsPromptNoneForwardFromClientSwitch();
+      advancedSettings.ensureAdvancedSettingsAreVisible();
       advancedSettings.assertStoreTokensSwitchTurnedOn(false);
       advancedSettings.assertAcceptsPromptNoneForwardFromClientSwitchTurnedOn(
-        false
+        false,
       );
-      cy.findByTestId("revert").click();
+      cy.findByTestId("idp-details-revert").click();
       advancedSettings.assertStoreTokensSwitchTurnedOn(true);
       advancedSettings.assertAcceptsPromptNoneForwardFromClientSwitchTurnedOn(
-        true
+        true,
       );
     });
 

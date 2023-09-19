@@ -16,14 +16,14 @@ const ClientDetails = lazy(() => import("../ClientDetails"));
 export const ClientScopesRoute: AppRouteObject = {
   path: "/:realm/clients/:clientId/clientScopes/:tab",
   element: <ClientDetails />,
-  breadcrumb: (t) => t("clients:clientSettings"),
+  breadcrumb: (t) => t("clientSettings"),
   handle: {
     access: "view-clients",
   },
 };
 
 export const toClientScopesTab = (
-  params: ClientScopesParams
+  params: ClientScopesParams,
 ): Partial<Path> => ({
   pathname: generatePath(ClientScopesRoute.path, params),
 });

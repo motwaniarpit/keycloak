@@ -9,7 +9,7 @@ import { useState } from "react";
 import { Controller, Path, PathValue, useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { HelpItem } from "ui-shared";
 import { convertAttributeNameToForm } from "../../util";
 import { FormFields } from "../ClientDetails";
@@ -19,7 +19,7 @@ type ToggleProps = {
   label: string;
 };
 export const Toggle = ({ name, label }: ToggleProps) => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const { control } = useFormContext<FormFields>();
 
   return (
@@ -42,8 +42,8 @@ export const Toggle = ({ name, label }: ToggleProps) => {
           <Switch
             id={name!}
             data-testid={label}
-            label={t("common:on")}
-            labelOff={t("common:off")}
+            label={t("on")}
+            labelOff={t("off")}
             isChecked={field.value === "true"}
             onChange={(value) => field.onChange(value.toString())}
             aria-label={t(label)}
@@ -55,7 +55,7 @@ export const Toggle = ({ name, label }: ToggleProps) => {
 };
 
 export const SamlConfig = () => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const { control } = useFormContext<FormFields>();
 
   const [nameFormatOpen, setNameFormatOpen] = useState(false);
@@ -70,8 +70,8 @@ export const SamlConfig = () => {
         fieldId="nameIdFormat"
         labelIcon={
           <HelpItem
-            helpText={t("clients-help:nameIdFormat")}
-            fieldLabelId="clients:nameIdFormat"
+            helpText={t("nameIdFormatHelp")}
+            fieldLabelId="nameIdFormat"
           />
         }
       >
@@ -121,15 +121,19 @@ export const SamlConfig = () => {
       />
       <Toggle
         name={convertAttributeNameToForm(
-          "attributes.saml.onetimeuse.condition"
+          "attributes.saml.onetimeuse.condition",
         )}
         label="includeOneTimeUseCondition"
       />
       <Toggle
         name={convertAttributeNameToForm(
-          "attributes.saml.server.signature.keyinfo.ext"
+          "attributes.saml.server.signature.keyinfo.ext",
         )}
         label="optimizeLookup"
+      />
+      <Toggle
+        name={convertAttributeNameToForm("attributes.saml.allow.ecp.flow")}
+        label="allowEcpFlow"
       />
     </FormAccess>
   );

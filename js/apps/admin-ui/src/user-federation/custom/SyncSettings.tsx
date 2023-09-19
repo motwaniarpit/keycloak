@@ -6,7 +6,7 @@ import { HelpItem } from "ui-shared";
 import { KeycloakTextInput } from "../../components/keycloak-text-input/KeycloakTextInput";
 
 export const SyncSettings = () => {
-  const { t } = useTranslation("user-federation");
+  const { t } = useTranslation();
   const { control, register, watch } = useFormContext();
   const watchPeriodicSync = watch("config.fullSyncPeriod", "-1");
   const watchChangedSync = watch("config.changedSyncPeriod", "-1");
@@ -36,8 +36,8 @@ export const SyncSettings = () => {
                 field.onChange(value ? "604800" : "-1");
               }}
               isChecked={field.value !== "-1"}
-              label={t("common:on")}
-              labelOff={t("common:off")}
+              label={t("on")}
+              labelOff={t("off")}
               aria-label={t("periodicFullSync")}
             />
           )}
@@ -88,8 +88,8 @@ export const SyncSettings = () => {
                 field.onChange(value ? "86400" : "-1");
               }}
               isChecked={field.value !== "-1"}
-              label={t("common:on")}
-              labelOff={t("common:off")}
+              label={t("on")}
+              labelOff={t("off")}
               aria-label={t("periodicChangedUsersSync")}
             />
           )}

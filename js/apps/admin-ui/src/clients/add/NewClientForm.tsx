@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 
 import { adminClient } from "../../admin-client";
 import { useAlerts } from "../../components/alert/Alerts";
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { ViewHeader } from "../../components/view-header/ViewHeader";
 import { useRealm } from "../../context/realm-context/RealmContext";
 import { convertFormValuesToObject } from "../../util";
@@ -25,7 +25,7 @@ import { GeneralSettings } from "./GeneralSettings";
 import { LoginSettings } from "./LoginSettings";
 
 export default function NewClientForm() {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const { realm } = useRealm();
   const navigate = useNavigate();
 
@@ -60,10 +60,10 @@ export default function NewClientForm() {
         ...client,
         clientId: client.clientId?.trim(),
       });
-      addAlert(t("createSuccess"), AlertVariant.success);
+      addAlert(t("createClientSuccess"), AlertVariant.success);
       navigate(toClient({ realm, clientId: newClient.id, tab: "settings" }));
     } catch (error) {
-      addError("clients:createError", error);
+      addError("createClientError", error);
     }
   };
 
@@ -97,10 +97,7 @@ export default function NewClientForm() {
   const title = t("createClient");
   return (
     <>
-      <ViewHeader
-        titleKey="clients:createClient"
-        subKey="clients:clientsExplain"
-      />
+      <ViewHeader titleKey="createClient" subKey="clientsExplain" />
       <PageSection variant="light">
         <FormProvider {...form}>
           <Wizard
@@ -147,7 +144,7 @@ export default function NewClientForm() {
                           forward(onNext);
                         }}
                       >
-                        {isFinalStep() ? t("common:save") : t("common:next")}
+                        {isFinalStep() ? t("save") : t("next")}
                       </Button>
                       <Button
                         variant="secondary"
@@ -158,14 +155,14 @@ export default function NewClientForm() {
                         }}
                         isDisabled={activeStep.name === t("generalSettings")}
                       >
-                        {t("common:back")}
+                        {t("back")}
                       </Button>
                       <Button
                         data-testid="cancel"
                         variant="link"
                         onClick={onClose}
                       >
-                        {t("common:cancel")}
+                        {t("cancel")}
                       </Button>
                     </>
                   )}

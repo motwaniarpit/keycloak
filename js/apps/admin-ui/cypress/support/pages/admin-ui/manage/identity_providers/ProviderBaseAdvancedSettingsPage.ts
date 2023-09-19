@@ -55,6 +55,7 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
   private scopesInput = "#scopes";
   private storeTokensSwitch = "#storeTokens";
   private storedTokensReadable = "#storedTokensReadable";
+  private isAccessTokenJWT = "#isAccessTokenJWT";
   private acceptsPromptNoneForwardFromClientSwitch = "#acceptsPromptNone";
   private advancedSettingsToggle = ".pf-c-expandable-section__toggle";
   private passLoginHintSwitch = "#passLoginHint";
@@ -69,9 +70,12 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
   private firstLoginFlowSelect = "#firstBrokerLoginFlowAlias";
   private postLoginFlowSelect = "#postBrokerLoginFlowAlias";
   private syncModeSelect = "#syncMode";
+  private essentialClaimSwitch = "#filteredByClaim";
+  private claimNameInput = "#kc-claim-filter-name";
+  private claimValueInput = "#kc-claim-filter-value";
   private addBtn = "createProvider";
-  private saveBtn = "save";
-  private revertBtn = "revert";
+  private saveBtn = "idp-details-save";
+  private revertBtn = "idp-details-revert";
 
   private validateSignature = "#validateSignature";
   private JwksSwitch = "#useJwksUrl";
@@ -94,6 +98,11 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
     return this;
   }
 
+  public ensureAdvancedSettingsAreVisible() {
+    cy.findByTestId("jump-link-general-settings").click();
+    cy.findByTestId("jump-link-advanced-settings").click();
+  }
+
   public clickStoreTokensSwitch() {
     cy.get(this.storeTokensSwitch).parent().click();
     return this;
@@ -101,6 +110,11 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
 
   public clickStoredTokensReadableSwitch() {
     cy.get(this.storedTokensReadable).parent().click();
+    return this;
+  }
+
+  public clickIsAccessTokenJWTSwitch() {
+    cy.get(this.isAccessTokenJWT).parent().click();
     return this;
   }
 
@@ -129,11 +143,26 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
     return this;
   }
 
+  public clickEssentialClaimSwitch() {
+    cy.get(this.essentialClaimSwitch).parent().click();
+    return this;
+  }
+
+  public typeClaimNameInput(text: string) {
+    cy.get(this.claimNameInput).type(text).blur();
+    return this;
+  }
+
+  public typeClaimValueInput(text: string) {
+    cy.get(this.claimValueInput).type(text).blur();
+    return this;
+  }
+
   public selectFirstLoginFlowOption(loginFlowOption: LoginFlowOption) {
     cy.get(this.firstLoginFlowSelect).click();
     super.clickSelectMenuItem(
       loginFlowOption,
-      cy.get(".pf-c-select__menu-item").contains(loginFlowOption)
+      cy.get(".pf-c-select__menu-item").contains(loginFlowOption),
     );
     return this;
   }
@@ -142,18 +171,18 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
     cy.get(this.postLoginFlowSelect).click();
     super.clickSelectMenuItem(
       loginFlowOption,
-      cy.get(".pf-c-select__menu-item").contains(loginFlowOption)
+      cy.get(".pf-c-select__menu-item").contains(loginFlowOption),
     );
     return this;
   }
 
   public selectClientAssertSignAlg(
-    clientAssertionSigningAlg: ClientAssertionSigningAlg
+    clientAssertionSigningAlg: ClientAssertionSigningAlg,
   ) {
     cy.get(this.clientAssertionSigningAlg).click();
     super.clickSelectMenuItem(
       clientAssertionSigningAlg,
-      cy.get(".pf-c-select__menu-item").contains(clientAssertionSigningAlg)
+      cy.get(".pf-c-select__menu-item").contains(clientAssertionSigningAlg),
     );
     return this;
   }
@@ -162,7 +191,7 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
     cy.get(this.syncModeSelect).click();
     super.clickSelectMenuItem(
       syncModeOption,
-      cy.get(".pf-c-select__menu-item").contains(syncModeOption)
+      cy.get(".pf-c-select__menu-item").contains(syncModeOption),
     );
     return this;
   }
@@ -171,7 +200,7 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
     cy.get(this.promptSelect).click();
     super.clickSelectMenuItem(
       promptOption,
-      cy.get(".pf-c-select__menu-item").contains(promptOption).parent()
+      cy.get(".pf-c-select__menu-item").contains(promptOption).parent(),
     );
     return this;
   }
@@ -182,7 +211,7 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
   }
 
   public assertScopesInputEqual(text: string) {
-    cy.get(this.scopesInput).should("have.text", text).parent();
+    cy.get(this.scopesInput).should("have.value", text).parent();
     return this;
   }
 
@@ -196,10 +225,15 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
     return this;
   }
 
+  public assertIsAccessTokenJWTTurnedOn(isOn: boolean) {
+    super.assertSwitchStateOn(cy.get(this.isAccessTokenJWT).parent(), isOn);
+    return this;
+  }
+
   public assertAcceptsPromptNoneForwardFromClientSwitchTurnedOn(isOn: boolean) {
     super.assertSwitchStateOn(
       cy.get(this.acceptsPromptNoneForwardFromClientSwitch).parent(),
-      isOn
+      isOn,
     );
     return this;
   }
@@ -207,7 +241,7 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
   public assertDisableUserInfoSwitchTurnedOn(isOn: boolean) {
     super.assertSwitchStateOn(
       cy.get(this.disableUserInfoSwitch).parent(),
-      isOn
+      isOn,
     );
     return this;
   }
@@ -225,20 +259,35 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
   public assertHideOnLoginPageSwitchTurnedOn(isOn: boolean) {
     super.assertSwitchStateOn(
       cy.get(this.hideOnLoginPageSwitch).parent(),
-      isOn
+      isOn,
     );
     return this;
   }
 
+  public assertEssentialClaimSwitchTurnedOn(isOn: boolean) {
+    super.assertSwitchStateOn(cy.get(this.essentialClaimSwitch).parent(), isOn);
+    return this;
+  }
+
+  public assertClaimInputEqual(text: string) {
+    cy.get(this.claimNameInput).should("have.value", text).parent();
+    return this;
+  }
+
+  public assertClaimValueInputEqual(text: string) {
+    cy.get(this.claimValueInput).should("have.value", text).parent();
+    return this;
+  }
+
   public assertFirstLoginFlowSelectOptionEqual(
-    loginFlowOption: LoginFlowOption
+    loginFlowOption: LoginFlowOption,
   ) {
     cy.get(this.firstLoginFlowSelect).should("have.text", loginFlowOption);
     return this;
   }
 
   public assertPostLoginFlowSelectOptionEqual(
-    loginFlowOption: LoginFlowOption
+    loginFlowOption: LoginFlowOption,
   ) {
     cy.get(this.postLoginFlowSelect).should("have.text", loginFlowOption);
     return this;
@@ -250,11 +299,11 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
   }
 
   public assertClientAssertSigAlgSelectOptionEqual(
-    clientAssertionSigningAlg: ClientAssertionSigningAlg
+    clientAssertionSigningAlg: ClientAssertionSigningAlg,
   ) {
     cy.get(this.clientAssertionSigningAlg).should(
       "have.text",
-      clientAssertionSigningAlg
+      clientAssertionSigningAlg,
     );
     return this;
   }
@@ -267,7 +316,7 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
     this.clickSaveBtn();
     masthead.checkNotificationMessage(
       "Could not update the provider The url [" + url + "_url] is malformed",
-      true
+      true,
     );
     this.clickRevertBtn();
     //cy.findByTestId(url + "Url").contains
@@ -344,7 +393,7 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
 
     this.clickAcceptsPromptNoneForwardFromClientSwitch();
     super.assertSwitchStateOn(
-      cy.get(this.acceptsPromptNoneForwardFromClientSwitch)
+      cy.get(this.acceptsPromptNoneForwardFromClientSwitch),
     );
     return this;
   }
@@ -356,6 +405,8 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
     this.assertStoreTokensSwitchTurnedOn(true);
     this.clickStoredTokensReadableSwitch();
     this.assertStoredTokensReadableTurnedOn(true);
+    this.clickIsAccessTokenJWTSwitch();
+    this.assertIsAccessTokenJWTTurnedOn(true);
     this.clickTrustEmailSwitch();
     this.assertTrustEmailSwitchTurnedOn(true);
     this.clickAccountLinkingOnlySwitch();
@@ -368,19 +419,21 @@ export default class ProviderBaseGeneralSettingsPage extends PageObject {
     this.selectSyncModeOption(SyncModeOption.legacy);
 
     this.clickRevertBtn();
+    cy.get(this.advancedSettingsToggle).scrollIntoView().click();
     this.assertStoreTokensSwitchTurnedOn(false);
     this.assertStoredTokensReadableTurnedOn(false);
+    this.assertIsAccessTokenJWTTurnedOn(false);
     this.assertTrustEmailSwitchTurnedOn(false);
     this.assertAccountLinkingOnlySwitchTurnedOn(false);
     this.assertHideOnLoginPageSwitchTurnedOn(false);
 
     this.assertFirstLoginFlowSelectOptionEqual(
-      LoginFlowOption.firstBrokerLogin
+      LoginFlowOption.firstBrokerLogin,
     );
     this.assertPostLoginFlowSelectOptionEqual(LoginFlowOption.none);
     this.assertSyncModeSelectOptionEqual(SyncModeOption.import);
     this.assertClientAssertSigAlgSelectOptionEqual(
-      ClientAssertionSigningAlg.algorithmNotSpecified
+      ClientAssertionSigningAlg.algorithmNotSpecified,
     );
     return this;
   }

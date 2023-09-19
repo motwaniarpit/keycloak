@@ -23,14 +23,14 @@ const ClientDetails = lazy(() => import("../ClientDetails"));
 export const AuthorizationRoute: AppRouteObject = {
   path: "/:realm/clients/:clientId/authorization/:tab",
   element: <ClientDetails />,
-  breadcrumb: (t) => t("clients:clientSettings"),
+  breadcrumb: (t) => t("clientSettings"),
   handle: {
     access: "view-clients",
   },
 };
 
 export const toAuthorizationTab = (
-  params: AuthorizationParams
+  params: AuthorizationParams,
 ): Partial<Path> => ({
   pathname: generatePath(AuthorizationRoute.path, params),
 });

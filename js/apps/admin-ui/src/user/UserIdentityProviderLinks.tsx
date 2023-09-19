@@ -39,7 +39,7 @@ export const UserIdentityProviderLinks = ({
 
   const { realm } = useRealm();
   const { addAlert, addError } = useAlerts();
-  const { t } = useTranslation("users");
+  const { t } = useTranslation();
 
   const refresh = () => setKey(new Date().getTime());
 
@@ -57,7 +57,7 @@ export const UserIdentityProviderLinks = ({
     })) as WithProviderId[];
     for (const element of allFedIds) {
       element.providerId = allProviders.find(
-        (item) => item.alias === element.identityProvider
+        (item) => item.alias === element.identityProvider,
       )?.providerId!;
     }
 
@@ -74,11 +74,11 @@ export const UserIdentityProviderLinks = ({
 
   const availableIdPsLoader = async () => {
     const linkedNames = (await getFederatedIdentities()).map(
-      (x) => x.identityProvider
+      (x) => x.identityProvider,
     );
 
     return (await getAvailableIdPs())?.filter(
-      (item) => !linkedNames.includes(item.alias)
+      (item) => !linkedNames.includes(item.alias),
     )!;
   };
 
@@ -100,7 +100,7 @@ export const UserIdentityProviderLinks = ({
         addAlert(t("users:idpUnlinkSuccess"), AlertVariant.success);
         refresh();
       } catch (error) {
-        addError("common:mappingDeletedError", error);
+        addError("mappingDeletedError", error);
       }
     },
   });
@@ -122,7 +122,7 @@ export const UserIdentityProviderLinks = ({
 
   const badgeRenderer1 = (idp: FederatedIdentityRepresentation) => {
     const groupName = identityProviders?.find(
-      (provider) => provider["id"] === idp.identityProvider
+      (provider) => provider["id"] === idp.identityProvider,
     )?.groupName!;
     return (
       <Label color={groupName === "Social" ? "blue" : "orange"}>
@@ -135,7 +135,7 @@ export const UserIdentityProviderLinks = ({
 
   const badgeRenderer2 = (idp: IdentityProviderRepresentation) => {
     const groupName = identityProviders?.find(
-      (provider) => provider["id"] === idp.providerId
+      (provider) => provider["id"] === idp.providerId,
     )?.groupName!;
     return (
       <Label color={groupName === "User-defined" ? "orange" : "blue"}>
@@ -203,14 +203,14 @@ export const UserIdentityProviderLinks = ({
             columns={[
               {
                 name: "identityProvider",
-                displayKey: "common:name",
+                displayKey: "name",
                 cellFormatters: [emptyFormatter()],
                 cellRenderer: idpLinkRenderer,
                 transforms: [cellWidth(20)],
               },
               {
                 name: "type",
-                displayKey: "common:type",
+                displayKey: "type",
                 cellFormatters: [emptyFormatter()],
                 cellRenderer: badgeRenderer1,
                 transforms: [cellWidth(10)],
@@ -256,13 +256,13 @@ export const UserIdentityProviderLinks = ({
             columns={[
               {
                 name: "alias",
-                displayKey: "common:name",
+                displayKey: "name",
                 cellFormatters: [emptyFormatter(), upperCaseFormatter()],
                 transforms: [cellWidth(20)],
               },
               {
                 name: "type",
-                displayKey: "common:type",
+                displayKey: "type",
                 cellFormatters: [emptyFormatter()],
                 cellRenderer: badgeRenderer2,
                 transforms: [cellWidth(60)],

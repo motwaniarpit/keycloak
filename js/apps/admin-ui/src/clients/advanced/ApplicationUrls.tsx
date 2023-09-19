@@ -1,82 +1,36 @@
-import { FormGroup } from "@patternfly/react-core";
-import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
-import { HelpItem } from "ui-shared";
-import { KeycloakTextInput } from "../../components/keycloak-text-input/KeycloakTextInput";
-import { convertAttributeNameToForm } from "../../util";
-import { FormFields } from "../ClientDetails";
+import { TextControl } from "ui-shared";
 
 type ApplicationUrlsProps = {
   isDisabled?: boolean;
 };
 
 export const ApplicationUrls = (props: ApplicationUrlsProps) => {
-  const { t } = useTranslation("clients");
-  const { register } = useFormContext();
+  const { t } = useTranslation();
 
   return (
     <>
-      <FormGroup
+      <TextControl
+        name="attributes.logoUri"
         label={t("logoUrl")}
-        fieldId="logoUrl"
-        labelIcon={
-          <HelpItem
-            helpText={t("clients-help:logoUrl")}
-            fieldLabelId="clients:logoUrl"
-          />
-        }
-      >
-        <KeycloakTextInput
-          id="logoUrl"
-          type="url"
-          data-testid="logoUrl"
-          {...register(
-            convertAttributeNameToForm<FormFields>("attributes.logoUri")
-          )}
-          {...props}
-        />
-      </FormGroup>
-      <FormGroup
+        labelIcon={t("logoUrlHelp")}
+        type="url"
+        {...props}
+      />
+      <TextControl
+        name="attributes.policyUri"
         label={t("policyUrl")}
-        fieldId="policyUrl"
-        labelIcon={
-          <HelpItem
-            helpText={t("clients-help:policyUrl")}
-            fieldLabelId="clients:policyUrl"
-          />
-        }
-      >
-        <KeycloakTextInput
-          id="policyUrl"
-          data-testid="policyUrl"
-          type="url"
-          {...register(
-            convertAttributeNameToForm<FormFields>("attributes.policyUri")
-          )}
-          {...props}
-        />
-      </FormGroup>
-      <FormGroup
+        labelIcon={t("policyUrlHelp")}
+        type="url"
+        {...props}
+      />
+      <TextControl
+        name="attributes.tosUri"
         label={t("termsOfServiceUrl")}
-        fieldId="termsOfServiceUrl"
-        labelIcon={
-          <HelpItem
-            helpText={t("clients-help:termsOfServiceUrl")}
-            fieldLabelId="clients:termsOfServiceUrl"
-          />
-        }
-      >
-        <KeycloakTextInput
-          id="termsOfServiceUrl"
-          type="url"
-          data-testid="termsOfServiceUrl"
-          {...register(
-            convertAttributeNameToForm<FormFields>("attributes.tosUri")
-          )}
-          {...props}
-        />
-      </FormGroup>
+        labelIcon={t("termsOfServiceUrlHelp")}
+        type="url"
+        {...props}
+      />
     </>
   );
 };

@@ -42,6 +42,7 @@ export type SessionsTableProps = {
   logoutUser?: string;
   filter?: ReactNode;
   isSearching?: boolean;
+  isPaginated?: boolean;
 };
 
 const UsernameCell = (row: UserSessionRepresentation) => {
@@ -75,10 +76,11 @@ export default function SessionsTable({
   logoutUser,
   filter,
   isSearching,
+  isPaginated,
 }: SessionsTableProps) {
   const { realm } = useRealm();
   const { whoAmI } = useWhoAmI();
-  const { t } = useTranslation("sessions");
+  const { t } = useTranslation();
   const { addError } = useAlerts();
   const formatDate = useFormatDate();
   const [key, setKey] = useState(0);
@@ -93,7 +95,7 @@ export default function SessionsTable({
       },
       {
         name: "type",
-        displayKey: "common:type",
+        displayKey: "type",
       },
       {
         name: "start",
@@ -107,7 +109,7 @@ export default function SessionsTable({
       },
       {
         name: "ipAddress",
-        displayKey: "events:ipAddress",
+        displayKey: "ipAddress",
       },
       {
         name: "clients",
@@ -117,14 +119,14 @@ export default function SessionsTable({
     ];
 
     return defaultColumns.filter(
-      ({ name }) => !hiddenColumns.includes(name as ColumnName)
+      ({ name }) => !hiddenColumns.includes(name as ColumnName),
     );
   }, [realm, hiddenColumns]);
 
   const [toggleLogoutDialog, LogoutConfirm] = useConfirmDialog({
     titleKey: "sessions:logoutAllSessions",
     messageKey: "sessions:logoutAllDescription",
-    continueButtonLabel: "common:confirm",
+    continueButtonLabel: "confirm",
     onConfirm: async () => {
       try {
         await adminClient.users.logout({ id: logoutUser! });
@@ -151,8 +153,9 @@ export default function SessionsTable({
       <KeycloakDataTable
         key={key}
         loader={loader}
-        ariaLabelKey="sessions:title"
+        ariaLabelKey="titleSessions"
         searchPlaceholderKey="sessions:searchForSession"
+        isPaginated={isPaginated}
         isSearching={isSearching}
         searchTypeComponent={filter}
         toolbarItem={
@@ -167,7 +170,7 @@ export default function SessionsTable({
         columns={columns}
         actions={[
           {
-            title: t("common:signOut"),
+            title: t("signOut"),
             onRowClick: onClickSignOut,
           } as Action<UserSessionRepresentation>,
         ]}

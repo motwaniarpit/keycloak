@@ -1,5 +1,6 @@
 <#import "template.ftl" as layout>
 <#import "user-profile-commons.ftl" as userProfileCommons>
+<#import "register-commons.ftl" as registerCommons>
 <@layout.registrationLayout displayMessage=messagesPerField.exists('global') displayRequiredFields=true; section>
     <#if section = "header">
         ${msg("registerTitle")}
@@ -15,10 +16,17 @@
 		                        <label for="password" class="${properties.kcLabelClass!}">${msg("password")}</label> *
 		                    </div>
 		                    <div class="${properties.kcInputWrapperClass!}">
-		                        <input type="password" id="password" class="${properties.kcInputClass!}" name="password"
-		                               autocomplete="new-password"
-		                               aria-invalid="<#if messagesPerField.existsError('password','password-confirm')>true</#if>"
-		                        />
+								<div class="${properties.kcInputGroup!}">
+									<input type="password" id="password" class="${properties.kcInputClass!}" name="password"
+										   autocomplete="new-password"
+										   aria-invalid="<#if messagesPerField.existsError('password','password-confirm')>true</#if>"
+									/>
+									<button class="pf-c-button pf-m-control" type="button" aria-label="${msg('showPassword')}"
+											aria-controls="password"  data-password-toggle
+											data-label-show="${msg('showPassword')}" data-label-hide="${msg('hidePassword')}">
+										<i class="fa fa-eye" aria-hidden="true"></i>
+									</button>
+								</div>
 		
 		                        <#if messagesPerField.existsError('password')>
 		                            <span id="input-error-password" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
@@ -34,10 +42,17 @@
 		                               class="${properties.kcLabelClass!}">${msg("passwordConfirm")}</label> *
 		                    </div>
 		                    <div class="${properties.kcInputWrapperClass!}">
-		                        <input type="password" id="password-confirm" class="${properties.kcInputClass!}"
-		                               name="password-confirm"
-		                               aria-invalid="<#if messagesPerField.existsError('password-confirm')>true</#if>"
-		                        />
+								<div class="${properties.kcInputGroup!}">
+									<input type="password" id="password-confirm" class="${properties.kcInputClass!}"
+										   name="password-confirm"
+										   aria-invalid="<#if messagesPerField.existsError('password-confirm')>true</#if>"
+									/>
+									<button class="pf-c-button pf-m-control" type="button" aria-label="${msg('showPassword')}"
+											aria-controls="password-confirm"  data-password-toggle
+											data-label-show="${msg('showPassword')}" data-label-hide="${msg('hidePassword')}">
+										<i class="fa fa-eye" aria-hidden="true"></i>
+									</button>
+								</div>
 		
 		                        <#if messagesPerField.existsError('password-confirm')>
 		                            <span id="input-error-password-confirm" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
@@ -49,6 +64,8 @@
 		            </#if>
                 </#if>  
             </@userProfileCommons.userProfileFormFields>
+
+            <@registerCommons.termsAcceptance/>
             
             <#if recaptchaRequired??>
                 <div class="form-group">
@@ -70,5 +87,6 @@
                 </div>
             </div>
         </form>
+		<script type="module" src="${url.resourcesPath}/js/passwordVisibility.js"></script>
     </#if>
 </@layout.registrationLayout>

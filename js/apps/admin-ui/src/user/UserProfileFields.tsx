@@ -1,32 +1,28 @@
-import type {
-  UserProfileAttribute,
-  UserProfileAttributeRequired,
-} from "@keycloak/keycloak-admin-client/lib/defs/userProfileConfig";
-import {
-  Form,
-  FormGroup,
-  Select,
-  SelectOption,
-  Text,
-} from "@patternfly/react-core";
+import type { UserProfileAttribute } from "@keycloak/keycloak-admin-client/lib/defs/userProfileConfig";
+import UserProfileConfig from "@keycloak/keycloak-admin-client/lib/defs/userProfileConfig";
+import { Text } from "@patternfly/react-core";
 import { Fragment } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { KeycloakTextInput } from "../components/keycloak-text-input/KeycloakTextInput";
 import { ScrollForm } from "../components/scroll-form/ScrollForm";
-import { useUserProfile } from "../realm-settings/user-profile/UserProfileContext";
-import useToggle from "../utils/useToggle";
-
-const ROOT_ATTRIBUTES = ["username", "firstName", "lastName", "email"];
-const DEFAULT_ROLES = ["admin", "user"];
+import { OptionComponent } from "./components/OptionsComponent";
+import { SelectComponent } from "./components/SelectComponent";
+import { TextAreaComponent } from "./components/TextAreaComponent";
+import { TextComponent } from "./components/TextComponent";
+import { fieldName } from "./utils";
 
 type UserProfileFieldsProps = {
+  config: UserProfileConfig;
   roles?: string[];
 };
 
 export type UserProfileError = {
   responseData: { errors?: { errorMessage: string }[] };
+};
+
+export type Options = {
+  options: string[] | undefined;
 };
 
 export function isUserProfileError(error: unknown): error is UserProfileError {
@@ -39,30 +35,72 @@ export function userProfileErrorToString(error: UserProfileError) {
   );
 }
 
+const FieldTypes = [
+  "text",
+  "textarea",
+  "select",
+  "select-radiobuttons",
+  "multiselect",
+  "multiselect-checkboxes",
+  "html5-email",
+  "html5-tel",
+  "html5-url",
+  "html5-number",
+  "html5-range",
+  "html5-datetime-local",
+  "html5-date",
+  "html5-month",
+  "html5-time",
+] as const;
+
+export type Field = (typeof FieldTypes)[number];
+
+export const FIELDS: {
+  [index in Field]: (props: any) => JSX.Element;
+} = {
+  text: TextComponent,
+  textarea: TextAreaComponent,
+  select: SelectComponent,
+  "select-radiobuttons": OptionComponent,
+  multiselect: SelectComponent,
+  "multiselect-checkboxes": OptionComponent,
+  "html5-email": TextComponent,
+  "html5-tel": TextComponent,
+  "html5-url": TextComponent,
+  "html5-number": TextComponent,
+  "html5-range": TextComponent,
+  "html5-datetime-local": TextComponent,
+  "html5-date": TextComponent,
+  "html5-month": TextComponent,
+  "html5-time": TextComponent,
+} as const;
+
+export const isValidComponentType = (value: string): value is Field =>
+  value in FIELDS;
+
 export const UserProfileFields = ({
+  config,
   roles = ["admin"],
 }: UserProfileFieldsProps) => {
-  const { t } = useTranslation("realm-settings");
-  const { config } = useUserProfile();
+  const { t } = useTranslation();
 
   return (
     <ScrollForm
-      sections={[{ name: "" }, ...(config?.groups || [])].map((g) => ({
-        title: g.name || t("general"),
+      sections={[{ name: "" }, ...(config.groups || [])].map((g) => ({
+        title: g.displayHeader || g.name || t("general"),
         panel: (
-          <Form>
+          <div className="pf-c-form">
             {g.displayDescription && (
               <Text className="pf-u-pb-lg">{g.displayDescription}</Text>
             )}
-            {config?.attributes?.map((attribute) => (
+            {config.attributes?.map((attribute) => (
               <Fragment key={attribute.name}>
-                {(attribute.group || "") === g.name &&
-                  (attribute.permissions?.view || DEFAULT_ROLES).some((r) =>
-                    roles.includes(r)
-                  ) && <FormField attribute={attribute} roles={roles} />}
+                {(attribute.group || "") === g.name && (
+                  <FormField attribute={attribute} roles={roles} />
+                )}
               </Fragment>
             ))}
-          </Form>
+          </div>
         ),
       }))}
     />
@@ -75,95 +113,13 @@ type FormFieldProps = {
 };
 
 const FormField = ({ attribute, roles }: FormFieldProps) => {
-  const { t } = useTranslation("users");
-  const {
-    formState: { errors },
-    register,
-    control,
-  } = useFormContext();
-  const [open, toggle] = useToggle();
+  const { watch } = useFormContext();
+  const value = watch(fieldName(attribute));
 
-  const isBundleKey = (displayName?: string) => displayName?.includes("${");
-  const unWrap = (key: string) => key.substring(2, key.length - 1);
+  const componentType = (attribute.annotations?.["inputType"] ||
+    (Array.isArray(value) ? "multiselect" : "text")) as Field;
 
-  const isSelect = (attribute: UserProfileAttribute) =>
-    Object.hasOwn(attribute.validations || {}, "options");
+  const Component = FIELDS[componentType];
 
-  const isRootAttribute = (attr?: string) =>
-    attr && ROOT_ATTRIBUTES.includes(attr);
-
-  const isRequired = (required: UserProfileAttributeRequired | undefined) =>
-    Object.keys(required || {}).length !== 0;
-
-  const fieldName = (attribute: UserProfileAttribute) =>
-    `${isRootAttribute(attribute.name) ? "" : "attributes."}${attribute.name}`;
-
-  return (
-    <FormGroup
-      key={attribute.name}
-      label={
-        (isBundleKey(attribute.displayName)
-          ? t(unWrap(attribute.displayName!))
-          : attribute.displayName) || attribute.name
-      }
-      fieldId={attribute.name}
-      isRequired={isRequired(attribute.required)}
-      validated={errors.username ? "error" : "default"}
-      helperTextInvalid={t("common:required")}
-    >
-      {isSelect(attribute) ? (
-        <Controller
-          name={fieldName(attribute)}
-          defaultValue=""
-          control={control}
-          render={({ field }) => (
-            <Select
-              toggleId={attribute.name}
-              onToggle={toggle}
-              onSelect={(_, value) => {
-                field.onChange(value.toString());
-                toggle();
-              }}
-              selections={field.value}
-              variant="single"
-              aria-label={t("common:selectOne")}
-              isOpen={open}
-              isDisabled={
-                !(attribute.permissions?.edit || DEFAULT_ROLES).some((r) =>
-                  roles.includes(r)
-                )
-              }
-            >
-              {[
-                <SelectOption key="empty" value="">
-                  {t("common:choose")}
-                </SelectOption>,
-                ...(
-                  attribute.validations?.options as { options: string[] }
-                ).options.map((option) => (
-                  <SelectOption
-                    selected={field.value === option}
-                    key={option}
-                    value={option}
-                  >
-                    {option}
-                  </SelectOption>
-                )),
-              ]}
-            </Select>
-          )}
-        />
-      ) : (
-        <KeycloakTextInput
-          id={attribute.name}
-          isDisabled={
-            !(attribute.permissions?.edit || DEFAULT_ROLES).some((r) =>
-              roles.includes(r)
-            )
-          }
-          {...register(fieldName(attribute))}
-        />
-      )}
-    </FormGroup>
-  );
+  return <Component {...{ ...attribute, roles }} />;
 };

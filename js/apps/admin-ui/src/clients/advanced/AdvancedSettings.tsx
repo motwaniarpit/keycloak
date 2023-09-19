@@ -11,10 +11,11 @@ import {
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+
+import { FormAccess } from "../../components/form/FormAccess";
 import { HelpItem } from "ui-shared";
 
 import { adminClient } from "../../admin-client";
-import { FormAccess } from "../../components/form-access/FormAccess";
 import { KeyValueInput } from "../../components/key-value-form/KeyValueInput";
 import { MultiLineInput } from "../../components/multi-line-input/MultiLineInput";
 import { TimeSelector } from "../../components/time-selector/TimeSelector";
@@ -23,6 +24,8 @@ import { convertAttributeNameToForm } from "../../util";
 import { useFetch } from "../../utils/useFetch";
 import { FormFields } from "../ClientDetails";
 import { TokenLifespan } from "./TokenLifespan";
+
+import useIsFeatureEnabled, { Feature } from "../../utils/useIsFeatureEnabled";
 
 type AdvancedSettingsProps = {
   save: () => void;
@@ -37,16 +40,19 @@ export const AdvancedSettings = ({
   protocol,
   hasConfigureAccess,
 }: AdvancedSettingsProps) => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const [realm, setRealm] = useState<RealmRepresentation>();
   const { realm: realmName } = useRealm();
 
+  const isFeatureEnabled = useIsFeatureEnabled();
+  const isDPoPEnabled = isFeatureEnabled(Feature.DPoP);
+
   useFetch(
     () => adminClient.realms.findOne({ realm: realmName }),
     setRealm,
-    []
+    [],
   );
 
   const { control } = useFormContext();
@@ -62,14 +68,14 @@ export const AdvancedSettings = ({
           fieldId="assertionLifespan"
           labelIcon={
             <HelpItem
-              helpText={t("clients-help:assertionLifespan")}
-              fieldLabelId="clients:assertionLifespan"
+              helpText={t("assertionLifespanHelp")}
+              fieldLabelId="assertionLifespan"
             />
           }
         >
           <Controller
             name={convertAttributeNameToForm<FormFields>(
-              "attributes.saml.assertion.lifespan"
+              "attributes.saml.assertion.lifespan",
             )}
             defaultValue=""
             control={control}
@@ -88,7 +94,7 @@ export const AdvancedSettings = ({
           <TokenLifespan
             id="accessTokenLifespan"
             name={convertAttributeNameToForm(
-              "attributes.access.token.lifespan"
+              "attributes.access.token.lifespan",
             )}
             defaultValue={realm?.accessTokenLifespan}
             units={["minute", "day", "hour"]}
@@ -97,7 +103,7 @@ export const AdvancedSettings = ({
           <TokenLifespan
             id="clientSessionIdle"
             name={convertAttributeNameToForm(
-              "attributes.client.session.idle.timeout"
+              "attributes.client.session.idle.timeout",
             )}
             defaultValue={realm?.clientSessionIdleTimeout}
             units={["minute", "day", "hour"]}
@@ -106,7 +112,7 @@ export const AdvancedSettings = ({
           <TokenLifespan
             id="clientSessionMax"
             name={convertAttributeNameToForm(
-              "attributes.client.session.max.lifespan"
+              "attributes.client.session.max.lifespan",
             )}
             defaultValue={realm?.clientSessionMaxLifespan}
             units={["minute", "day", "hour"]}
@@ -115,7 +121,7 @@ export const AdvancedSettings = ({
           <TokenLifespan
             id="clientOfflineSessionIdle"
             name={convertAttributeNameToForm(
-              "attributes.client.offline.session.idle.timeout"
+              "attributes.client.offline.session.idle.timeout",
             )}
             defaultValue={realm?.offlineSessionIdleTimeout}
             units={["minute", "day", "hour"]}
@@ -124,9 +130,13 @@ export const AdvancedSettings = ({
           <TokenLifespan
             id="clientOfflineSessionMax"
             name={convertAttributeNameToForm(
-              "attributes.client.offline.session.max.lifespan"
+              "attributes.client.offline.session.max.lifespan",
             )}
-            defaultValue={realm?.offlineSessionMaxLifespan}
+            defaultValue={
+              realm?.offlineSessionMaxLifespanEnabled
+                ? realm.offlineSessionMaxLifespan
+                : undefined
+            }
             units={["minute", "day", "hour"]}
           />
 
@@ -136,22 +146,22 @@ export const AdvancedSettings = ({
             hasNoPaddingTop
             labelIcon={
               <HelpItem
-                helpText={t("clients-help:oAuthMutual")}
-                fieldLabelId="clients:oAuthMutual"
+                helpText={t("oAuthMutualHelp")}
+                fieldLabelId="oAuthMutual"
               />
             }
           >
             <Controller
               name={convertAttributeNameToForm<FormFields>(
-                "attributes.tls.client.certificate.bound.access.tokens"
+                "attributes.tls.client.certificate.bound.access.tokens",
               )}
               defaultValue={false}
               control={control}
               render={({ field }) => (
                 <Switch
                   id="oAuthMutual-switch"
-                  label={t("common:on")}
-                  labelOff={t("common:off")}
+                  label={t("on")}
+                  labelOff={t("off")}
                   isChecked={field.value === "true"}
                   onChange={(value) => field.onChange("" + value)}
                   aria-label={t("oAuthMutual")}
@@ -159,20 +169,51 @@ export const AdvancedSettings = ({
               )}
             />
           </FormGroup>
+          {isDPoPEnabled && (
+            <FormGroup
+              label={t("oAuthDPoP")}
+              fieldId="oAuthDPoP"
+              hasNoPaddingTop
+              labelIcon={
+                <HelpItem
+                  helpText={t("oAuthDPoPHelp")}
+                  fieldLabelId="oAuthDPoP"
+                />
+              }
+            >
+              <Controller
+                name={convertAttributeNameToForm<FormFields>(
+                  "attributes.dpop.bound.access.tokens",
+                )}
+                defaultValue={false}
+                control={control}
+                render={({ field }) => (
+                  <Switch
+                    id="oAuthDPoP-switch"
+                    label={t("on")}
+                    labelOff={t("off")}
+                    isChecked={field.value === "true"}
+                    onChange={(value) => field.onChange("" + value)}
+                    aria-label={t("oAuthDPoP")}
+                  />
+                )}
+              />
+            </FormGroup>
+          )}
           <FormGroup
             label={t("keyForCodeExchange")}
             fieldId="keyForCodeExchange"
             hasNoPaddingTop
             labelIcon={
               <HelpItem
-                helpText={t("clients-help:keyForCodeExchange")}
-                fieldLabelId="clients:keyForCodeExchange"
+                helpText={t("keyForCodeExchangeHelp")}
+                fieldLabelId="keyForCodeExchange"
               />
             }
           >
             <Controller
               name={convertAttributeNameToForm<FormFields>(
-                "attributes.pkce.code.challenge.method"
+                "attributes.pkce.code.challenge.method",
               )}
               defaultValue=""
               control={control}
@@ -186,11 +227,11 @@ export const AdvancedSettings = ({
                     field.onChange(value);
                     setOpen(false);
                   }}
-                  selections={[field.value || t("common:choose")]}
+                  selections={[field.value || t("choose")]}
                 >
                   {["", "S256", "plain"].map((v) => (
                     <SelectOption key={v} value={v}>
-                      {v || t("common:choose")}
+                      {v || t("choose")}
                     </SelectOption>
                   ))}
                 </Select>
@@ -202,22 +243,22 @@ export const AdvancedSettings = ({
             fieldId="pushedAuthorizationRequestRequired"
             labelIcon={
               <HelpItem
-                helpText={t("clients-help:pushedAuthorizationRequestRequired")}
-                fieldLabelId="clients:pushedAuthorizationRequestRequired"
+                helpText={t("pushedAuthorizationRequestRequiredHelp")}
+                fieldLabelId="pushedAuthorizationRequestRequired"
               />
             }
           >
             <Controller
               name={convertAttributeNameToForm<FormFields>(
-                "attributes.require.pushed.authorization.requests"
+                "attributes.require.pushed.authorization.requests",
               )}
               defaultValue="false"
               control={control}
               render={({ field }) => (
                 <Switch
                   id="pushedAuthorizationRequestRequired"
-                  label={t("common:on")}
-                  labelOff={t("common:off")}
+                  label={t("on")}
+                  labelOff={t("off")}
                   isChecked={field.value === "true"}
                   onChange={(value) => field.onChange(value.toString())}
                   aria-label={t("pushedAuthorizationRequestRequired")}
@@ -230,8 +271,8 @@ export const AdvancedSettings = ({
             fieldId="acrToLoAMapping"
             labelIcon={
               <HelpItem
-                helpText={t("clients-help:acrToLoAMapping")}
-                fieldLabelId="clients:acrToLoAMapping"
+                helpText={t("acrToLoAMappingHelp")}
+                fieldLabelId="acrToLoAMapping"
               />
             }
           >
@@ -244,8 +285,8 @@ export const AdvancedSettings = ({
             fieldId="defaultACRValues"
             labelIcon={
               <HelpItem
-                helpText={t("clients-help:defaultACRValues")}
-                fieldLabelId="clients:defaultACRValues"
+                helpText={t("defaultACRValuesHelp")}
+                fieldLabelId="defaultACRValues"
               />
             }
           >
@@ -264,10 +305,10 @@ export const AdvancedSettings = ({
           onClick={save}
           data-testid="OIDCAdvancedSave"
         >
-          {t("common:save")}
+          {t("save")}
         </Button>
         <Button variant="link" onClick={reset} data-testid="OIDCAdvancedRevert">
-          {t("common:revert")}
+          {t("revert")}
         </Button>
       </ActionGroup>
     </FormAccess>

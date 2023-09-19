@@ -4,7 +4,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { ActionGroup, Button } from "@patternfly/react-core";
 
 import type RealmRepresentation from "@keycloak/keycloak-admin-client/lib/defs/realmRepresentation";
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { HelpLinkTextInput } from "./HelpLinkTextInput";
 import { convertToFormValues } from "../../util";
 
@@ -63,6 +63,10 @@ export const HeadersForm = ({ realm, save }: HeadersFormProps) => {
           fieldName="browserSecurityHeaders.strictTransportSecurity"
           url="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security"
         />
+        <HelpLinkTextInput
+          fieldName="browserSecurityHeaders.referrerPolicy"
+          url="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy"
+        />
 
         <ActionGroup>
           <Button
@@ -71,10 +75,10 @@ export const HeadersForm = ({ realm, save }: HeadersFormProps) => {
             data-testid="headers-form-tab-save"
             isDisabled={!isDirty}
           >
-            {t("common:save")}
+            {t("save")}
           </Button>
           <Button variant="link" onClick={setupForm}>
-            {t("common:revert")}
+            {t("revert")}
           </Button>
         </ActionGroup>
       </FormAccess>

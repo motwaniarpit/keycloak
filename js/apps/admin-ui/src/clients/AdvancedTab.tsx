@@ -22,7 +22,7 @@ export const parseResult = (
   result: GlobalRequestResult,
   prefixKey: string,
   addAlert: AddAlertFunction,
-  t: TFunction
+  t: TFunction,
 ) => {
   const successCount = result.successRequests?.length || 0;
   const failedCount = result.failedRequests?.length || 0;
@@ -32,16 +32,16 @@ export const parseResult = (
   } else if (failedCount > 0) {
     addAlert(
       t(prefixKey + "Success", { successNodes: result.successRequests }),
-      AlertVariant.success
+      AlertVariant.success,
     );
     addAlert(
       t(prefixKey + "Fail", { failedNodes: result.failedRequests }),
-      AlertVariant.danger
+      AlertVariant.danger,
     );
   } else {
     addAlert(
       t(prefixKey + "Success", { successNodes: result.successRequests }),
-      AlertVariant.success
+      AlertVariant.success,
     );
   }
 };
@@ -52,7 +52,7 @@ export type AdvancedProps = {
 };
 
 export const AdvancedTab = ({ save, client }: AdvancedProps) => {
-  const { t } = useTranslation("clients");
+  const { t } = useTranslation();
   const openIdConnect = "openid-connect";
 
   const { setValue } = useFormContext();
@@ -67,7 +67,7 @@ export const AdvancedTab = ({ save, client }: AdvancedProps) => {
     for (const name of names) {
       setValue(
         convertAttributeNameToForm<FormFields>(`attributes.${name}`),
-        attributes?.[name] || ""
+        attributes?.[name] || "",
       );
     }
   };
@@ -92,7 +92,7 @@ export const AdvancedTab = ({ save, client }: AdvancedProps) => {
             panel: (
               <>
                 <Text className="pf-u-pb-lg">
-                  {t("clients-help:fineGrainOpenIdConnectConfiguration")}
+                  {t("fineGrainOpenIdConnectConfigurationHelp")}
                 </Text>
                 <FineGrainOpenIdConnect
                   save={save}
@@ -128,7 +128,7 @@ export const AdvancedTab = ({ save, client }: AdvancedProps) => {
             panel: (
               <>
                 <Text className="pf-u-pb-lg">
-                  {t("clients-help:openIdConnectCompatibilityModes")}
+                  {t("openIdConnectCompatibilityModesHelp")}
                 </Text>
                 <OpenIdConnectCompatibilityModes
                   save={() => save()}
@@ -150,7 +150,7 @@ export const AdvancedTab = ({ save, client }: AdvancedProps) => {
             panel: (
               <>
                 <Text className="pf-u-pb-lg">
-                  {t("clients-help:fineGrainSamlEndpointConfig")}
+                  {t("fineGrainSamlEndpointConfigHelp")}
                 </Text>
                 <FineGrainSamlEndpointConfig
                   save={() => save()}
@@ -177,10 +177,7 @@ export const AdvancedTab = ({ save, client }: AdvancedProps) => {
             panel: (
               <>
                 <Text className="pf-u-pb-lg">
-                  {t(
-                    "clients-help:advancedSettings" +
-                      toUpperCase(protocol || "")
-                  )}
+                  {t("advancedSettings" + toUpperCase(protocol || ""))}
                 </Text>
                 <AdvancedSettings
                   protocol={protocol}
@@ -202,7 +199,7 @@ export const AdvancedTab = ({ save, client }: AdvancedProps) => {
             panel: (
               <>
                 <Text className="pf-u-pb-lg">
-                  {t("clients-help:authenticationOverrides")}
+                  {t("authenticationOverridesHelp")}
                 </Text>
                 <AuthenticationOverrides
                   protocol={protocol}
@@ -210,11 +207,11 @@ export const AdvancedTab = ({ save, client }: AdvancedProps) => {
                   reset={() => {
                     setValue(
                       "authenticationFlowBindingOverrides.browser",
-                      authenticationFlowBindingOverrides?.browser
+                      authenticationFlowBindingOverrides?.browser,
                     );
                     setValue(
                       "authenticationFlowBindingOverrides.direct_grant",
-                      authenticationFlowBindingOverrides?.direct_grant
+                      authenticationFlowBindingOverrides?.direct_grant,
                     );
                   }}
                 />

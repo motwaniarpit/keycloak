@@ -24,7 +24,7 @@ import { KeycloakDataTable } from "../../components/table-toolbar/KeycloakDataTa
 import useLocaleSort, { mapByKey } from "../../utils/useLocaleSort";
 
 type Row = {
-  name: string;
+  id: string;
   description: string;
   item: ProtocolMapperRepresentation;
 };
@@ -33,7 +33,7 @@ export type AddMapperDialogModalProps = {
   protocol: string;
   filter?: ProtocolMapperRepresentation[];
   onConfirm: (
-    value: ProtocolMapperTypeRepresentation | ProtocolMapperRepresentation[]
+    value: ProtocolMapperTypeRepresentation | ProtocolMapperRepresentation[],
   ) => void;
 };
 
@@ -43,7 +43,7 @@ export type AddMapperDialogProps = AddMapperDialogModalProps & {
 };
 
 export const AddMapperDialog = (props: AddMapperDialogProps) => {
-  const { t } = useTranslation("client-scopes");
+  const { t } = useTranslation();
 
   const serverInfo = useServerInfo();
   const protocol = props.protocol;
@@ -57,15 +57,15 @@ export const AddMapperDialog = (props: AddMapperDialogProps) => {
     () =>
       localeSort(builtInMappers, mapByKey("name")).map((mapper) => {
         const mapperType = protocolMappers.filter(
-          (type) => type.id === mapper.protocolMapper
+          (type) => type.id === mapper.protocolMapper,
         )[0];
         return {
           item: mapper,
-          name: mapper.name!,
+          id: mapper.name!,
           description: mapperType.helpText,
         };
       }),
-    [builtInMappers, protocolMappers]
+    [builtInMappers, protocolMappers],
   );
   const [rows, setRows] = useState(allRows);
 
@@ -77,12 +77,12 @@ export const AddMapperDialog = (props: AddMapperDialogProps) => {
 
   const sortedProtocolMappers = useMemo(
     () => localeSort(protocolMappers, mapByKey("name")),
-    [protocolMappers]
+    [protocolMappers],
   );
 
   const isBuiltIn = !!props.filter;
 
-  const header = [t("common:name"), t("common:description")];
+  const header = [t("name"), t("description")];
 
   return (
     <Modal
@@ -122,7 +122,7 @@ export const AddMapperDialog = (props: AddMapperDialogProps) => {
                   props.toggleDialog();
                 }}
               >
-                {t("common:add")}
+                {t("add")}
               </Button>,
               <Button
                 id="modal-cancel"
@@ -133,7 +133,7 @@ export const AddMapperDialog = (props: AddMapperDialogProps) => {
                   props.toggleDialog();
                 }}
               >
-                {t("common:cancel")}
+                {t("cancel")}
               </Button>,
             ]
           : []
@@ -187,22 +187,22 @@ export const AddMapperDialog = (props: AddMapperDialogProps) => {
           loader={rows}
           onSelect={setSelectedRows}
           canSelectAll
-          ariaLabelKey="client-scopes:addPredefinedMappers"
-          searchPlaceholderKey="common:searchForMapper"
+          ariaLabelKey="addPredefinedMappers"
+          searchPlaceholderKey="searchForMapper"
           columns={[
             {
-              name: "name",
-              displayKey: "common:name",
+              name: "id",
+              displayKey: "name",
             },
             {
               name: "description",
-              displayKey: "common:description",
+              displayKey: "description",
             },
           ]}
           emptyState={
             <ListEmptyState
-              message={t("common:emptyMappers")}
-              instructions={t("client-scopes:emptyBuiltInMappersInstructions")}
+              message={t("emptyMappers")}
+              instructions={t("emptyBuiltInMappersInstructions")}
             />
           }
         />

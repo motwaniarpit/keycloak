@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { HelpItem } from "ui-shared";
 
 import { adminClient } from "../../admin-client";
-import { FormAccess } from "../../components/form-access/FormAccess";
+import { FormAccess } from "../../components/form/FormAccess";
 import { KeycloakTextInput } from "../../components/keycloak-text-input/KeycloakTextInput";
 import { WizardSectionHeader } from "../../components/wizard-section-header/WizardSectionHeader";
 import { useRealm } from "../../context/realm-context/RealmContext";
@@ -29,8 +29,7 @@ export const KerberosSettingsRequired = ({
   showSectionHeading = false,
   showSectionDescription = false,
 }: KerberosSettingsRequiredProps) => {
-  const { t } = useTranslation("user-federation");
-  const { t: helpText } = useTranslation("user-federation-help");
+  const { t } = useTranslation();
 
   const { realm } = useRealm();
 
@@ -44,7 +43,7 @@ export const KerberosSettingsRequired = ({
   useFetch(
     () => adminClient.realms.findOne({ realm }),
     (result) => form.setValue("parentId", result!.id),
-    []
+    [],
   );
 
   return (
@@ -52,7 +51,7 @@ export const KerberosSettingsRequired = ({
       {showSectionHeading && (
         <WizardSectionHeader
           title={t("requiredSettings")}
-          description={helpText("kerberosRequiredSettingsDescription")}
+          description={t("kerberosRequiredSettingsDescription")}
           showDescription={showSectionDescription}
         />
       )}
@@ -240,8 +239,8 @@ export const KerberosSettingsRequired = ({
                 data-testid="debug"
                 onChange={(value) => field.onChange([`${value}`])}
                 isChecked={field.value?.[0] === "true"}
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 aria-label={t("debug")}
               />
             )}
@@ -253,7 +252,7 @@ export const KerberosSettingsRequired = ({
           labelIcon={
             <HelpItem
               helpText={t(
-                "user-federation-help:allowPasswordAuthenticationHelp"
+                "user-federation-help:allowPasswordAuthenticationHelp",
               )}
               fieldLabelId="user-federation:allowPasswordAuthentication"
             />
@@ -271,8 +270,8 @@ export const KerberosSettingsRequired = ({
                 data-testid="allow-password-authentication"
                 onChange={(value) => field.onChange([`${value}`])}
                 isChecked={field.value?.[0] === "true"}
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 aria-label={t("allowPasswordAuthentication")}
               />
             )}
@@ -341,8 +340,8 @@ export const KerberosSettingsRequired = ({
                 data-testid="update-first-login"
                 onChange={(value) => field.onChange([`${value}`])}
                 isChecked={field.value?.[0] === "true"}
-                label={t("common:on")}
-                labelOff={t("common:off")}
+                label={t("on")}
+                labelOff={t("off")}
                 aria-label={t("updateFirstLogin")}
               />
             )}

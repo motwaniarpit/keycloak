@@ -105,11 +105,11 @@ public interface Attributes {
     Set<String> nameSet();
 
     /**
-     * Returns all attributes defined.
+     * Returns all attributes that can be written.
      *
      * @return the attributes
      */
-    Set<Map.Entry<String, List<String>>> attributeSet();
+    Map<String, List<String>> getWritable();
 
     /**
      * <p>Returns the metadata associated with the attribute with the given {@code name}.
@@ -142,7 +142,16 @@ public interface Attributes {
             if (includeBuiltin) {
                 return true;
             }
-            return !isRootAttribute(entry.getKey());
+            if (isRootAttribute(entry.getKey())) {
+                if (UserModel.LOCALE.equals(entry.getKey()) && !entry.getValue().isEmpty()) {
+                    // locale is different form of built-in attribute in the sense it is related to a
+                    // specific feature (i18n) and does not have a top-level attribute in the user representation
+                    // the locale should be available from the attribute map if not empty
+                    return true;
+                }
+                return false;
+            }
+            return true;
         }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
@@ -163,7 +172,8 @@ public interface Attributes {
         return UserModel.USERNAME.equals(name)
                 || UserModel.EMAIL.equals(name)
                 || UserModel.FIRST_NAME.equals(name)
-                || UserModel.LAST_NAME.equals(name);
+                || UserModel.LAST_NAME.equals(name)
+                || UserModel.LOCALE.equals(name);
     }
 
     Map<String, List<String>> toMap();
